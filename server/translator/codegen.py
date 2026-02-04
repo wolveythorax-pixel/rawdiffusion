@@ -63,6 +63,12 @@ class CodeGenerator:
                 elif m.pattern_type == 'upscale':
                     lines.append(f"#   - Upscale ({m.config.get('method')})")
 
+        # Quality enhancements note
+        lines.append("#")
+        lines.append("# Quality Enhancements: FreeU enabled by default")
+        lines.append("#   FreeU improves quality with zero additional compute cost")
+        lines.append("#   See: https://arxiv.org/abs/2309.11497")
+
         return '\n'.join(lines)
 
     def _generate_imports(self, patterns: list[PatternMatch]) -> str:
@@ -82,6 +88,8 @@ class CodeGenerator:
                 imports.append("from diffusers import StableDiffusionXLPipeline")
             else:
                 imports.append("from diffusers import StableDiffusionPipeline")
+                # SAG pipeline for SD1.5 (not available for SDXL yet)
+                imports.append("from diffusers import StableDiffusionSAGPipeline")
 
         # ControlNet
         if any(p.pattern_type == 'controlnet' for p in patterns):
@@ -157,6 +165,22 @@ class CodeGenerator:
                 strength = cn.config.get('strength', 1.0)
                 lines.append(f'CONTROLNET_{i}_MODEL = "{model}"')
                 lines.append(f"CONTROLNET_{i}_STRENGTH = {strength}")
+
+        # Quality Enhancement Configuration
+        lines.append("")
+        lines.append("# Quality Enhancements")
+        lines.append("# FreeU: Improves quality by rebalancing UNet skip connections")
+        lines.append("# Paper: https://arxiv.org/abs/2309.11497")
+        lines.append("ENABLE_FREEU = True")
+        lines.append("FREEU_S1 = 0.9   # Skip connection scale for stage 1")
+        lines.append("FREEU_S2 = 0.2   # Skip connection scale for stage 2")
+        lines.append("FREEU_B1 = 1.3   # Backbone scale for stage 1")
+        lines.append("FREEU_B2 = 1.4   # Backbone scale for stage 2")
+        lines.append("")
+        lines.append("# SAG: Self-Attention Guidance for improved coherence")
+        lines.append("# Paper: https://arxiv.org/abs/2210.00939")
+        lines.append("ENABLE_SAG = False  # Requires StableDiffusionSAGPipeline")
+        lines.append("SAG_SCALE = 0.75    # Guidance scale (0.0-1.0)")
 
         return '\n'.join(lines)
 
@@ -248,14 +272,25 @@ class CodeGenerator:
             lines.append('    torch_dtype=dtype,')
             lines.append(')')
         else:
-            # Standard pipeline
+            # Standard pipeline (with SAG support for SD1.5)
             if is_xl:
                 lines.append("pipe = StableDiffusionXLPipeline.from_single_file(")
+                lines.append('    MODEL_PATH,')
+                lines.append('    torch_dtype=dtype,')
+                lines.append(')')
             else:
-                lines.append("pipe = StableDiffusionPipeline.from_single_file(")
-            lines.append('    MODEL_PATH,')
-            lines.append('    torch_dtype=dtype,')
-            lines.append(')')
+                lines.append("# Use SAG pipeline if enabled, otherwise standard pipeline")
+                lines.append("if ENABLE_SAG:")
+                lines.append("    pipe = StableDiffusionSAGPipeline.from_single_file(")
+                lines.append('        MODEL_PATH,')
+                lines.append('        torch_dtype=dtype,')
+                lines.append('    )')
+                lines.append("    print('SAG Pipeline loaded - use sag_scale parameter during inference')")
+                lines.append("else:")
+                lines.append("    pipe = StableDiffusionPipeline.from_single_file(")
+                lines.append('        MODEL_PATH,')
+                lines.append('        torch_dtype=dtype,')
+                lines.append('    )')
 
         lines.append("pipe.to(device)")
 
@@ -264,7 +299,42 @@ class CodeGenerator:
         lines.append("# Memory optimization")
         lines.append("pipe.enable_model_cpu_offload()")
 
+        # Quality enhancements
+        lines.append("")
+        lines.append("# Quality Enhancements")
+        lines.append("if ENABLE_FREEU:")
+        lines.append("    # FreeU improves quality by rebalancing skip connections and backbone features")
+        lines.append("    # No additional training required - works at inference time")
+        lines.append("    pipe.enable_freeu(s1=FREEU_S1, s2=FREEU_S2, b1=FREEU_B1, b2=FREEU_B2)")
+        lines.append("    print(f'FreeU enabled: s1={FREEU_S1}, s2={FREEU_S2}, b1={FREEU_B1}, b2={FREEU_B2}')")
+
         return lines
+
+    def _generate_quality_note(self) -> list[str]:
+        """Generate quality enhancement documentation"""
+        return [
+            "# ═══════════════════════════════════════════════════════════════════════════",
+            "# QUALITY ENHANCEMENT OPTIONS",
+            "# ═══════════════════════════════════════════════════════════════════════════",
+            "#",
+            "# FreeU (Recommended for most use cases)",
+            "#   - Improves image quality without retraining",
+            "#   - Works by rebalancing UNet skip connections",
+            "#   - Presets: SD1.5: b1=1.5, b2=1.6, s1=0.9, s2=0.2",
+            "#             SDXL:  b1=1.3, b2=1.4, s1=0.9, s2=0.2",
+            "#   - To disable: pipe.disable_freeu()",
+            "#",
+            "# SAG (Self-Attention Guidance)",
+            "#   - Improves coherence and reduces artifacts",
+            "#   - Requires StableDiffusionSAGPipeline instead of standard pipeline",
+            "#   - Usage: image = pipe(prompt, sag_scale=0.75).images[0]",
+            "#",
+            "# PAG (Perturbed-Attention Guidance) - Advanced",
+            "#   - Similar to SAG but uses attention perturbation",
+            "#   - Not yet in stable diffusers, use community extensions",
+            "#",
+            "# ═══════════════════════════════════════════════════════════════════════════",
+        ]
 
     def _generate_lora_loading(self, loras: list[PatternMatch]) -> list[str]:
         """Generate LoRA loading code"""
@@ -352,6 +422,9 @@ class CodeGenerator:
         # IPAdapter
         if ipadapters:
             lines.append("    ip_adapter_image=ip_image,")
+
+        # SAG scale (only for SD1.5, not SDXL)
+        lines.append("    **(dict(sag_scale=SAG_SCALE) if ENABLE_SAG else {}),")
 
         lines.append(").images[0]")
 
