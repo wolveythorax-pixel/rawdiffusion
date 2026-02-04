@@ -7,6 +7,8 @@ export class WorkflowRunner {
     private outputChannel: vscode.OutputChannel;
     private currentProcess: ChildProcess | null = null;
     private statusBarItem: vscode.StatusBarItem;
+    private _outputHandlers: ((imagePath: string, template?: string) => void)[] = [];
+    private _currentTemplate?: string;
 
     constructor(private context: vscode.ExtensionContext) {
         this.outputChannel = vscode.window.createOutputChannel('RawDiffusion');
@@ -14,6 +16,18 @@ export class WorkflowRunner {
         this.statusBarItem.text = '$(play) RawDiffusion';
         this.statusBarItem.command = 'rawdiffusion.runWorkflow';
         context.subscriptions.push(this.statusBarItem);
+    }
+
+    onOutput(handler: (imagePath: string, template?: string) => void) {
+        this._outputHandlers.push(handler);
+    }
+
+    private emitOutput(imagePath: string) {
+        this._outputHandlers.forEach(h => h(imagePath, this._currentTemplate));
+    }
+
+    setCurrentTemplate(template: string) {
+        this._currentTemplate = template;
     }
 
     async run(code: string): Promise<void> {
@@ -175,19 +189,11 @@ export class WorkflowRunner {
             return;
         }
 
-        // Open the image
-        const uri = vscode.Uri.file(latestImage.path);
+        // Emit output event for the output panel
+        this.emitOutput(latestImage.path);
 
-        // Try to show in a preview panel
-        try {
-            await vscode.commands.executeCommand('vscode.open', uri, {
-                viewColumn: vscode.ViewColumn.Beside,
-                preview: true
-            });
-        } catch (e) {
-            // Fallback to system viewer
-            vscode.env.openExternal(uri);
-        }
+        // Focus the output view
+        vscode.commands.executeCommand('rawdiffusion.output.focus');
     }
 
     stop() {

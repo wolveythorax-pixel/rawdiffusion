@@ -81,6 +81,11 @@
           "name": "Template Gallery"
         },
         {
+          "type": "webview",
+          "id": "rawdiffusion.output",
+          "name": "Output"
+        },
+        {
           "id": "rawdiffusion.recent",
           "name": "Recent Generations"
         },
@@ -167,6 +172,16 @@
           "type": "string",
           "default": "",
           "description": "Replicate API key (for cloud generation)"
+        },
+        "rawdiffusion.davinciMediaPath": {
+          "type": "string",
+          "default": "",
+          "description": "DaVinci Resolve Media Pool folder for push integration"
+        },
+        "rawdiffusion.gimpPath": {
+          "type": "string",
+          "default": "gimp",
+          "description": "Path to GIMP executable"
         }
       }
     }

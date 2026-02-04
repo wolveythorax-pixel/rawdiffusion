@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { GalleryViewProvider } from './views/GalleryViewProvider';
 import { RecentTreeDataProvider } from './views/RecentTreeDataProvider';
 import { ModelsTreeDataProvider } from './views/ModelsTreeDataProvider';
+import { OutputViewProvider } from './views/OutputViewProvider';
 import { TemplateManager } from './providers/TemplateManager';
 import { CodeGenerator } from './providers/CodeGenerator';
 import { WorkflowRunner } from './providers/WorkflowRunner';
@@ -9,6 +10,7 @@ import { WorkflowRunner } from './providers/WorkflowRunner';
 let galleryProvider: GalleryViewProvider;
 let recentProvider: RecentTreeDataProvider;
 let modelsProvider: ModelsTreeDataProvider;
+let outputProvider: OutputViewProvider;
 let templateManager: TemplateManager;
 let codeGenerator: CodeGenerator;
 let workflowRunner: WorkflowRunner;
@@ -25,12 +27,27 @@ export function activate(context: vscode.ExtensionContext) {
     galleryProvider = new GalleryViewProvider(context, templateManager);
     recentProvider = new RecentTreeDataProvider(context);
     modelsProvider = new ModelsTreeDataProvider(context);
+    outputProvider = new OutputViewProvider(context);
+
+    // Connect workflow runner to output provider
+    workflowRunner.onOutput((imagePath, template) => {
+        outputProvider.setOutput(imagePath, template);
+        recentProvider.refresh();
+    });
 
     // Register gallery webview
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(
             'rawdiffusion.gallery',
             galleryProvider
+        )
+    );
+
+    // Register output webview
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(
+            'rawdiffusion.output',
+            outputProvider
         )
     );
 
