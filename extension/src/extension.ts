@@ -6,6 +6,7 @@ import { OutputViewProvider } from './views/OutputViewProvider';
 import { TemplateManager } from './providers/TemplateManager';
 import { CodeGenerator } from './providers/CodeGenerator';
 import { WorkflowRunner } from './providers/WorkflowRunner';
+import { DaVinciIntegration } from './providers/DaVinciIntegration';
 
 let galleryProvider: GalleryViewProvider;
 let recentProvider: RecentTreeDataProvider;
@@ -14,6 +15,7 @@ let outputProvider: OutputViewProvider;
 let templateManager: TemplateManager;
 let codeGenerator: CodeGenerator;
 let workflowRunner: WorkflowRunner;
+let davinciIntegration: DaVinciIntegration;
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('RawDiffusion is now active');
@@ -22,6 +24,7 @@ export function activate(context: vscode.ExtensionContext) {
     templateManager = new TemplateManager(context);
     codeGenerator = new CodeGenerator(context);
     workflowRunner = new WorkflowRunner(context);
+    davinciIntegration = new DaVinciIntegration(context);
 
     // Initialize views
     galleryProvider = new GalleryViewProvider(context, templateManager);
@@ -101,6 +104,33 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('rawdiffusion.refreshGallery', () => {
             galleryProvider.refresh();
             modelsProvider.refresh();
+        })
+    );
+
+    // DaVinci integration commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('rawdiffusion.pullFromDavinci', async () => {
+            await davinciIntegration.insertSourcePath();
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('rawdiffusion.davinciTimelineInfo', async () => {
+            const info = await davinciIntegration.getTimelineInfo();
+            if (info) {
+                vscode.window.showInformationMessage(
+                    `Timeline: ${info.name} | ${info.width}x${info.height} @ ${info.fps}fps`
+                );
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('rawdiffusion.exportDavinciFrame', async () => {
+            const framePath = await davinciIntegration.exportCurrentFrame();
+            if (framePath) {
+                vscode.window.showInformationMessage(`Exported frame to: ${framePath}`);
+            }
         })
     );
 

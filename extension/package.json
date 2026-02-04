@@ -62,6 +62,24 @@
         "title": "Refresh Gallery",
         "category": "RawDiffusion",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "rawdiffusion.pullFromDavinci",
+        "title": "Pull Frame from DaVinci",
+        "category": "RawDiffusion",
+        "icon": "$(arrow-down)"
+      },
+      {
+        "command": "rawdiffusion.davinciTimelineInfo",
+        "title": "DaVinci Timeline Info",
+        "category": "RawDiffusion",
+        "icon": "$(info)"
+      },
+      {
+        "command": "rawdiffusion.exportDavinciFrame",
+        "title": "Export DaVinci Frame",
+        "category": "RawDiffusion",
+        "icon": "$(export)"
       }
     ],
     "viewsContainers": {
@@ -118,6 +136,18 @@
           "command": "rawdiffusion.runWorkflow",
           "when": "resourceFilename =~ /.*\\.py$/",
           "group": "navigation"
+        },
+        {
+          "command": "rawdiffusion.pullFromDavinci",
+          "when": "resourceFilename =~ /.*\\.py$/",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "rawdiffusion.pullFromDavinci",
+          "when": "editorLangId == python",
+          "group": "rawdiffusion@1"
         }
       ]
     },
