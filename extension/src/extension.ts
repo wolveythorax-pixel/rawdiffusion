@@ -107,9 +107,9 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
-    // DaVinci integration commands
+    // Source image insertion (works with or without DaVinci)
     context.subscriptions.push(
-        vscode.commands.registerCommand('rawdiffusion.pullFromDavinci', async () => {
+        vscode.commands.registerCommand('rawdiffusion.insertSourceImage', async () => {
             await davinciIntegration.insertSourcePath();
         })
     );

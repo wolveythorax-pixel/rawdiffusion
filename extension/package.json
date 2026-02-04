@@ -64,10 +64,10 @@
         "icon": "$(refresh)"
       },
       {
-        "command": "rawdiffusion.pullFromDavinci",
-        "title": "Pull Frame from DaVinci",
+        "command": "rawdiffusion.insertSourceImage",
+        "title": "Insert Source Image Path",
         "category": "RawDiffusion",
-        "icon": "$(arrow-down)"
+        "icon": "$(file-media)"
       },
       {
         "command": "rawdiffusion.davinciTimelineInfo",
@@ -138,14 +138,14 @@
           "group": "navigation"
         },
         {
-          "command": "rawdiffusion.pullFromDavinci",
+          "command": "rawdiffusion.insertSourceImage",
           "when": "resourceFilename =~ /.*\\.py$/",
           "group": "navigation"
         }
       ],
       "editor/context": [
         {
-          "command": "rawdiffusion.pullFromDavinci",
+          "command": "rawdiffusion.insertSourceImage",
           "when": "editorLangId == python",
           "group": "rawdiffusion@1"
         }

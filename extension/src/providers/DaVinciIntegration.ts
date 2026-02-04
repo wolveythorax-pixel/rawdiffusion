@@ -248,12 +248,10 @@ if __name__ == "__main__":
         try {
             const result = await this._runBridgeCommand('timeline-info');
             if (result.error) {
-                vscode.window.showErrorMessage(`DaVinci: ${result.error}`);
                 return null;
             }
             return result as TimelineInfo;
-        } catch (error: any) {
-            vscode.window.showErrorMessage(`Failed to connect to DaVinci Resolve: ${error.message}`);
+        } catch {
             return null;
         }
     }
@@ -262,12 +260,10 @@ if __name__ == "__main__":
         try {
             const result = await this._runBridgeCommand('current-clip');
             if (result.error) {
-                vscode.window.showErrorMessage(`DaVinci: ${result.error}`);
                 return null;
             }
             return result as ClipInfo;
-        } catch (error: any) {
-            vscode.window.showErrorMessage(`Failed to get current clip: ${error.message}`);
+        } catch {
             return null;
         }
     }
@@ -278,12 +274,12 @@ if __name__ == "__main__":
         try {
             const result = await this._runBridgeCommand('export-frame', outputPath);
             if (result.error) {
-                vscode.window.showErrorMessage(`DaVinci: ${result.error}`);
+                vscode.window.showWarningMessage('DaVinci Resolve not running. Use file browser instead.');
                 return null;
             }
             return outputPath;
-        } catch (error: any) {
-            vscode.window.showErrorMessage(`Failed to export frame: ${error.message}`);
+        } catch {
+            vscode.window.showWarningMessage('DaVinci Resolve not running. Use file browser instead.');
             return null;
         }
     }
@@ -303,58 +299,33 @@ if __name__ == "__main__":
             return;
         }
 
-        // First try to get the source clip path
-        const clip = await this.getCurrentClip();
+        // Try to get clip from DaVinci silently (no errors if not running)
+        let clip: ClipInfo | null = null;
+        try {
+            clip = await this.getCurrentClip();
+        } catch {
+            // DaVinci not running - that's fine, we'll use file picker
+        }
 
         if (clip && clip.filePath && fs.existsSync(clip.filePath)) {
-            // Insert the source file path
-            const pathToInsert = clip.filePath;
-            await this._insertPathAtCursor(editor, pathToInsert, 'source clip');
-        } else {
-            // Offer to export the current frame
-            const choice = await vscode.window.showQuickPick([
-                { label: 'Export Current Frame', description: 'Render the frame at playhead', value: 'export' },
-                { label: 'Enter Path Manually', description: 'Type or paste a file path', value: 'manual' },
-                { label: 'Browse...', description: 'Open file picker', value: 'browse' }
-            ], {
-                placeHolder: 'Could not get source clip. Choose an option:'
-            });
+            // Got path from DaVinci - insert it
+            await this._insertPathAtCursor(editor, clip.filePath, 'source clip');
+            return;
+        }
 
-            if (!choice) {
-                return;
+        // DaVinci not available or no clip - just open file picker
+        const fileUri = await vscode.window.showOpenDialog({
+            canSelectMany: false,
+            openLabel: 'Select Source Image',
+            filters: {
+                'Images': ['png', 'jpg', 'jpeg', 'webp', 'tiff', 'exr', 'bmp'],
+                'Video Frames': ['dpx', 'tga', 'cin'],
+                'All Files': ['*']
             }
+        });
 
-            switch (choice.value) {
-                case 'export':
-                    const exportedPath = await this.exportCurrentFrame();
-                    if (exportedPath) {
-                        await this._insertPathAtCursor(editor, exportedPath, 'exported frame');
-                    }
-                    break;
-
-                case 'manual':
-                    const manualPath = await vscode.window.showInputBox({
-                        prompt: 'Enter the image file path',
-                        placeHolder: '/path/to/image.png'
-                    });
-                    if (manualPath) {
-                        await this._insertPathAtCursor(editor, manualPath, 'image');
-                    }
-                    break;
-
-                case 'browse':
-                    const fileUri = await vscode.window.showOpenDialog({
-                        canSelectMany: false,
-                        filters: {
-                            'Images': ['png', 'jpg', 'jpeg', 'webp', 'tiff', 'exr'],
-                            'All Files': ['*']
-                        }
-                    });
-                    if (fileUri && fileUri[0]) {
-                        await this._insertPathAtCursor(editor, fileUri[0].fsPath, 'image');
-                    }
-                    break;
-            }
+        if (fileUri && fileUri[0]) {
+            await this._insertPathAtCursor(editor, fileUri[0].fsPath, 'image');
         }
     }
 
