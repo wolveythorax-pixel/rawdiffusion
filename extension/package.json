@@ -1,0 +1,127 @@
+{
+  "name": "rawdiffusion",
+  "displayName": "RawDiffusion",
+  "description": "Browse like Midjourney. Code like a developer. Own your workflow.",
+  "version": "0.1.0",
+  "publisher": "rawdiffusion",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Machine Learning",
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "stable diffusion",
+    "image generation",
+    "ai art",
+    "diffusers",
+    "midjourney alternative"
+  ],
+  "activationEvents": [
+    "onLanguage:python",
+    "onCommand:rawdiffusion.openGallery",
+    "onCommand:rawdiffusion.runWorkflow",
+    "workspaceContains:**/*.sdflow"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "rawdiffusion.openGallery",
+        "title": "RawDiffusion: Open Gallery"
+      },
+      {
+        "command": "rawdiffusion.runWorkflow",
+        "title": "RawDiffusion: Run Current Workflow"
+      },
+      {
+        "command": "rawdiffusion.explainCode",
+        "title": "RawDiffusion: Explain Selected Code"
+      },
+      {
+        "command": "rawdiffusion.saveAsTemplate",
+        "title": "RawDiffusion: Save as Template"
+      },
+      {
+        "command": "rawdiffusion.startServer",
+        "title": "RawDiffusion: Start Server"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "rawdiffusion.runWorkflow",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r",
+        "when": "editorTextFocus"
+      }
+    ],
+    "configuration": {
+      "title": "RawDiffusion",
+      "properties": {
+        "rawdiffusion.serverPort": {
+          "type": "number",
+          "default": 8420,
+          "description": "Port for the RawDiffusion server"
+        },
+        "rawdiffusion.galleryPort": {
+          "type": "number",
+          "default": 8421,
+          "description": "Port for the gallery browser UI"
+        },
+        "rawdiffusion.defaultProvider": {
+          "type": "string",
+          "enum": ["local", "stability", "replicate", "fal", "runpod"],
+          "default": "local",
+          "description": "Default provider for new workflows"
+        },
+        "rawdiffusion.localModelsPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to local model checkpoints"
+        },
+        "rawdiffusion.stabilityApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Stability AI API key"
+        },
+        "rawdiffusion.replicateApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Replicate API key"
+        },
+        "rawdiffusion.falApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "FAL.ai API key"
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "sdflow",
+        "aliases": ["SD Workflow", "sdflow"],
+        "extensions": [".sdflow", ".sdw"],
+        "configuration": "./language-configuration.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "ws": "^8.14.0"
+  }
+}

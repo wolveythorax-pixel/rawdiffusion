@@ -1,0 +1,36 @@
+# provider: local
+# model: juggernautXL_v9.safetensors
+# name: Cinematic Landscape
+# description: Epic landscape shots with cinematic lighting
+# category: landscape
+
+from diffusers import StableDiffusionXLPipeline
+import torch
+
+# Load the model
+pipe = StableDiffusionXLPipeline.from_single_file(
+    MODELS_PATH + "/juggernautXL_v9.safetensors",
+    torch_dtype=torch.float16,
+    use_safetensors=True
+)
+pipe.to("cuda")
+
+# Enable optimizations
+pipe.enable_model_cpu_offload()
+
+# Your prompt - edit this!
+prompt = "epic mountain landscape at golden hour, volumetric fog, cinematic lighting, 8k, hyperrealistic"
+
+negative_prompt = "blurry, low quality, oversaturated, cartoon, anime, illustration"
+
+# Generate
+image = pipe(
+    prompt=prompt,
+    negative_prompt=negative_prompt,
+    num_inference_steps=30,
+    guidance_scale=7.5,
+    width=1024,
+    height=768,
+).images[0]
+
+# Image is automatically saved by RawDiffusion

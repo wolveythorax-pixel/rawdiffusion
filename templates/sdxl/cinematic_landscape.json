@@ -1,0 +1,14 @@
+{
+  "name": "Cinematic Landscape",
+  "description": "Epic landscape shots with cinematic lighting and volumetric fog",
+  "category": "landscape",
+  "tags": ["landscape", "cinematic", "nature", "golden hour"],
+  "author": "RawDiffusion",
+  "thumbnail": null,
+  "settings": {
+    "steps": 30,
+    "cfg_scale": 7.5,
+    "width": 1024,
+    "height": 768
+  }
+}

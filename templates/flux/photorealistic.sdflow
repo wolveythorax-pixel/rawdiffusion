@@ -1,0 +1,32 @@
+# provider: replicate
+# model: black-forest-labs/flux-1.1-pro
+# name: Flux Photorealistic
+# description: Ultra-realistic images with Flux 1.1 Pro
+# category: photorealistic
+
+import replicate
+import os
+
+# Your prompt - edit this!
+prompt = "a photorealistic image of a coffee cup on a wooden table, morning light through window, steam rising"
+
+# Run on Replicate (requires API key)
+output = replicate.run(
+    "black-forest-labs/flux-1.1-pro",
+    input={
+        "prompt": prompt,
+        "aspect_ratio": "1:1",
+        "output_format": "png",
+        "output_quality": 90,
+        "safety_tolerance": 2,
+        "prompt_upsampling": True
+    }
+)
+
+# Download and save
+import requests
+from PIL import Image
+from io import BytesIO
+
+response = requests.get(output)
+image = Image.open(BytesIO(response.content))

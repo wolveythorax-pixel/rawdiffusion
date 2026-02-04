@@ -1,0 +1,24 @@
+# RawDiffusion Server Dependencies
+
+# Web server
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+websockets>=12.0
+python-multipart>=0.0.6
+
+# Image generation (local)
+diffusers>=0.25.0
+transformers>=4.36.0
+accelerate>=0.25.0
+torch>=2.1.0
+safetensors>=0.4.0
+Pillow>=10.0.0
+
+# Cloud providers (optional)
+replicate>=0.22.0
+stability-sdk>=0.8.0
+httpx>=0.25.0
+
+# Utilities
+pydantic>=2.5.0
+python-dotenv>=1.0.0
