@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="fantasybg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d1b4e"/>
+      <stop offset="100%" style="stop-color:#1a1a2e"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="200" height="200" fill="url(#fantasybg)"/>
+  <!-- Stars -->
+  <circle cx="30" cy="30" r="1" fill="#fff" opacity="0.8"/>
+  <circle cx="170" cy="40" r="1.5" fill="#fff" opacity="0.6"/>
+  <circle cx="50" cy="60" r="1" fill="#fff" opacity="0.7"/>
+  <circle cx="150" cy="20" r="1" fill="#fff" opacity="0.9"/>
+  <!-- Sword -->
+  <rect x="95" y="40" width="10" height="80" fill="#c0c0c0"/>
+  <rect x="85" y="115" width="30" height="8" fill="#8b4513" rx="2"/>
+  <polygon points="100,40 90,55 110,55" fill="#e0e0e0"/>
+  <!-- Magic glow -->
+  <circle cx="100" cy="70" r="20" fill="#9b59b6" opacity="0.3" filter="url(#glow)"/>
+  <circle cx="100" cy="70" r="10" fill="#9b59b6" opacity="0.5" filter="url(#glow)"/>
+  <!-- Magic particles -->
+  <circle cx="80" cy="60" r="2" fill="#e056fd" filter="url(#glow)"/>
+  <circle cx="120" cy="80" r="2" fill="#e056fd" filter="url(#glow)"/>
+  <circle cx="90" cy="90" r="1.5" fill="#e056fd" filter="url(#glow)"/>
+  <circle cx="115" cy="55" r="1.5" fill="#e056fd" filter="url(#glow)"/>
+  <!-- Ground -->
+  <ellipse cx="100" cy="170" rx="60" ry="15" fill="#1a0a2e"/>
+  <!-- Label -->
+  <text x="100" y="190" text-anchor="middle" fill="#e056fd" font-family="system-ui" font-size="12" font-weight="bold">Fantasy</text>
+</svg>

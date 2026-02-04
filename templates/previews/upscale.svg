@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="upbg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#upbg)"/>
+  <!-- Small pixelated image -->
+  <g transform="translate(25, 50)">
+    <rect width="60" height="60" fill="#3a5a3a"/>
+    <!-- Pixels -->
+    <rect x="0" y="0" width="12" height="12" fill="#4a6a4a"/>
+    <rect x="12" y="0" width="12" height="12" fill="#5a7a5a"/>
+    <rect x="24" y="0" width="12" height="12" fill="#4a6a4a"/>
+    <rect x="36" y="0" width="12" height="12" fill="#3a5a3a"/>
+    <rect x="48" y="0" width="12" height="12" fill="#4a6a4a"/>
+    <rect x="0" y="12" width="12" height="12" fill="#5a7a5a"/>
+    <rect x="24" y="12" width="12" height="12" fill="#6a8a6a"/>
+    <rect x="48" y="12" width="12" height="12" fill="#5a7a5a"/>
+    <rect x="12" y="24" width="12" height="12" fill="#4a6a4a"/>
+    <rect x="36" y="24" width="12" height="12" fill="#5a7a5a"/>
+    <rect x="0" y="36" width="12" height="12" fill="#3a5a3a"/>
+    <rect x="24" y="36" width="12" height="12" fill="#4a6a4a"/>
+    <rect x="48" y="36" width="12" height="12" fill="#3a5a3a"/>
+    <rect x="12" y="48" width="12" height="12" fill="#4a6a4a"/>
+    <rect x="36" y="48" width="12" height="12" fill="#3a5a3a"/>
+  </g>
+  <!-- Arrow -->
+  <path d="M95 80 L115 80 M110 75 L115 80 L110 85" stroke="#ffffff" stroke-width="2" fill="none"/>
+  <!-- Large smooth image -->
+  <g transform="translate(125, 35)">
+    <rect width="55" height="90" fill="#4a7a4a" rx="3"/>
+    <!-- Smooth gradient overlay to show quality -->
+    <rect x="5" y="5" width="45" height="80" fill="url(#upbg)" opacity="0.3" rx="2"/>
+  </g>
+  <!-- Size labels -->
+  <text x="55" y="130" text-anchor="middle" fill="#888" font-family="system-ui" font-size="10">512px</text>
+  <text x="152" y="145" text-anchor="middle" fill="#4a9a4a" font-family="system-ui" font-size="10">2048px</text>
+  <!-- Magnifying glass -->
+  <circle cx="165" cy="55" r="12" fill="none" stroke="#fff" stroke-width="2"/>
+  <line x1="173" y1="63" x2="182" y2="72" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <!-- Label -->
+  <text x="100" y="185" text-anchor="middle" fill="#ffffff" font-family="system-ui" font-size="12" opacity="0.8">Upscale</text>
+</svg>

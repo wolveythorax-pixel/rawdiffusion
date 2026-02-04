@@ -109,25 +109,111 @@ Templates are designed to work in multiple environments:
 }
 ```
 
+## Prompts and Style Modifiers
+
+### How Prompts Work
+
+Prompts in RawDiffusion are **single-line strings** passed to the diffusers pipeline. Use commas to separate concepts:
+
+```
+portrait of a woman, professional photography, soft lighting, shallow depth of field
+```
+
+### Style Templates
+
+Templates can include automatic style modifiers via the `build_prompt` pipeline step:
+
+```json
+{
+  "pipeline": [
+    {
+      "id": "build_prompt",
+      "type": "build_prompt",
+      "config": {
+        "style_templates": {
+          "cinematic": "{prompt}, cinematic lighting, film grain, 35mm",
+          "studio": "{prompt}, studio photography, soft box lighting"
+        }
+      }
+    }
+  ]
+}
+```
+
+When a user enters `"portrait of a businessman"` with style `"studio"`, the final prompt becomes:
+```
+portrait of a businessman, studio photography, soft box lighting
+```
+
+### Lighting and Atmosphere Modifiers
+
+Templates can also add lighting/atmosphere suffixes:
+
+```json
+{
+  "config": {
+    "lighting_modifiers": {
+      "golden_hour": "golden hour lighting, warm tones, long shadows",
+      "blue_hour": "blue hour, twilight, cool tones"
+    },
+    "atmosphere_modifiers": {
+      "foggy": "volumetric fog, atmospheric depth",
+      "clear": "crystal clear air"
+    }
+  }
+}
+```
+
+### Writing Good Prompts
+
+| Do | Don't |
+|----|-------|
+| `detailed face, sharp features` | `make the face look good` |
+| `85mm lens, f/1.8, bokeh` | `blurry background` |
+| `golden hour lighting` | `good lighting` |
+| `oil painting style, visible brushstrokes` | `artistic` |
+
+**Order matters**: Put the most important concepts first.
+
+### Negative Prompts
+
+Common negative prompt components:
+- **Quality**: `blurry, low quality, jpeg artifacts, pixelated, noisy`
+- **Style issues**: `oversaturated, overexposed, underexposed`
+- **Unwanted elements**: `text, watermark, signature, logo, frame, border`
+- **Anatomy**: `deformed, bad anatomy, extra fingers, extra limbs`
+- **AI artifacts**: `split image, collage, multiple views`
+
 ## Available Templates
 
 ### By Model
 
-| Model | Templates |
-|-------|-----------|
-| JuggernautXL | Photorealistic Portrait, Cinematic Scene |
-| DreamShaper | Fantasy Character |
-| AnythingV5 | Anime Character |
-| AnimateDiff | Video Generation |
+| Model | Templates | Category |
+|-------|-----------|----------|
+| JuggernautXL | Photorealistic Portrait | txt2img |
+| JuggernautXL | Cinematic Scene | txt2img |
+| JuggernautXL | Lightning Fast (4-6 steps) | txt2img |
+| DreamShaper | Fantasy Character | txt2img |
+| AnythingV5 | Anime Character | txt2img |
+| RealVisXL | Photorealistic Scene | txt2img |
+| AnimateDiff | Video Generation | animation |
+| AnimateDiff | Video to Video | video |
 
 ### By Task
 
-| Task | Template |
-|------|----------|
-| Inpainting | Brush Inpaint (GIMP optimized) |
-| Pose Control | ControlNet OpenPose |
-| Upscaling | AI Upscale & Enhance |
-| Style Transfer | Img2Img Style Transfer |
+| Task | Template | Category |
+|------|----------|----------|
+| Inpainting | Brush Inpaint | inpaint |
+| Pose Control | ControlNet OpenPose | controlnet |
+| Upscaling | AI Upscale & Enhance | upscale |
+| Style Transfer | Img2Img Style Transfer | img2img |
+| Reference Style | IP Adapter Style Reference | style-transfer |
+
+### Standalone
+
+| Template | Description |
+|----------|-------------|
+| Cinematic Landscape | Epic landscapes with fog and dramatic lighting |
 
 ## Creating New Templates
 

@@ -8,6 +8,7 @@
   "tags": ["img2img", "style", "transfer", "variation", "transform"],
   "difficulty": "beginner",
   "category": "img2img",
+  "preview": "style-transfer.svg",
 
   "requirements": {
     "base_model": {

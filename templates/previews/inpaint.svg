@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="inpaintbg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+    <pattern id="checkers" width="20" height="20" patternUnits="userSpaceOnUse">
+      <rect width="10" height="10" fill="#ccc"/>
+      <rect x="10" y="10" width="10" height="10" fill="#ccc"/>
+      <rect x="10" width="10" height="10" fill="#999"/>
+      <rect y="10" width="10" height="10" fill="#999"/>
+    </pattern>
+  </defs>
+  <rect width="200" height="200" fill="url(#inpaintbg)"/>
+  <!-- Image frame -->
+  <rect x="30" y="30" width="140" height="120" fill="#4a90a4" rx="5"/>
+  <!-- Mountain in image -->
+  <polygon points="30,150 80,80 130,120 170,70 170,150" fill="#2d5a5a"/>
+  <!-- Masked area (checkerboard) -->
+  <circle cx="110" cy="100" r="35" fill="url(#checkers)"/>
+  <!-- Brush cursor -->
+  <circle cx="110" cy="100" r="15" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="5,3"/>
+  <!-- Paintbrush -->
+  <g transform="translate(140, 130) rotate(45)">
+    <rect x="0" y="0" width="8" height="40" fill="#8b4513"/>
+    <rect x="-2" y="35" width="12" height="20" fill="#4a4a4a" rx="2"/>
+    <ellipse cx="4" cy="60" rx="8" ry="6" fill="#ff6b6b"/>
+  </g>
+  <!-- Label -->
+  <text x="100" y="185" text-anchor="middle" fill="#ffffff" font-family="system-ui" font-size="12" opacity="0.8">Inpaint</text>
+</svg>

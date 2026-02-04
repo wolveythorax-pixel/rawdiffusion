@@ -8,6 +8,7 @@
   "tags": ["portrait", "photorealistic", "headshot", "fashion", "sdxl"],
   "difficulty": "beginner",
   "category": "txt2img",
+  "preview": "portrait.svg",
 
   "requirements": {
     "base_model": {

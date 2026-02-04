@@ -12,6 +12,7 @@ export interface Template {
     tags?: string[];
     difficulty: 'beginner' | 'intermediate' | 'advanced';
     category: string;
+    preview?: string;  // Path to preview SVG relative to templates/previews/
     requirements?: {
         base_model?: {
             architecture: string;

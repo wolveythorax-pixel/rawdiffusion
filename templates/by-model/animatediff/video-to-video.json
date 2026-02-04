@@ -8,6 +8,7 @@
   "tags": ["video", "vid2vid", "style", "animation", "controlnet", "animatediff"],
   "difficulty": "intermediate",
   "category": "video",
+  "preview": "video.svg",
   "source": {
     "type": "comfyui",
     "url": "https://openart.ai/workflows/futurebenji/animatediff-flicker-free-animation-video-workflow/A9ZE35kkDazgWGXhnyXh"

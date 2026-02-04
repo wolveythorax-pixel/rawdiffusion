@@ -8,6 +8,7 @@
   "tags": ["video", "animation", "motion", "clip", "animatediff", "sd15"],
   "difficulty": "intermediate",
   "category": "animation",
+  "preview": "video.svg",
 
   "requirements": {
     "base_model": {

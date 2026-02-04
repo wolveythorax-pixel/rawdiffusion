@@ -8,6 +8,7 @@
   "tags": ["cinematic", "film", "movie", "scene", "landscape", "dramatic", "sdxl"],
   "difficulty": "beginner",
   "category": "txt2img",
+  "preview": "cinematic.svg",
 
   "requirements": {
     "base_model": {

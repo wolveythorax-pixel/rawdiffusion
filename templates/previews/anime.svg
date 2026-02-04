@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="animebg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffecd2"/>
+      <stop offset="100%" style="stop-color:#fcb69f"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#animebg)"/>
+  <!-- Hair back -->
+  <ellipse cx="100" cy="90" rx="55" ry="60" fill="#ff6b9d"/>
+  <!-- Face -->
+  <ellipse cx="100" cy="100" rx="35" ry="42" fill="#ffeee4"/>
+  <!-- Hair front -->
+  <path d="M55 70 Q70 50 100 45 Q130 50 145 70 L140 90 Q120 75 100 80 Q80 75 60 90 Z" fill="#ff6b9d"/>
+  <!-- Hair strands -->
+  <path d="M70 70 Q65 90 70 110" stroke="#ff4081" fill="none" stroke-width="3"/>
+  <path d="M130 70 Q135 90 130 110" stroke="#ff4081" fill="none" stroke-width="3"/>
+  <!-- Big anime eyes -->
+  <ellipse cx="82" cy="100" rx="12" ry="15" fill="#ffffff"/>
+  <ellipse cx="118" cy="100" rx="12" ry="15" fill="#ffffff"/>
+  <ellipse cx="84" cy="102" rx="8" ry="10" fill="#6c5ce7"/>
+  <ellipse cx="120" cy="102" rx="8" ry="10" fill="#6c5ce7"/>
+  <ellipse cx="86" cy="98" rx="3" ry="4" fill="#ffffff"/>
+  <ellipse cx="122" cy="98" rx="3" ry="4" fill="#ffffff"/>
+  <!-- Blush -->
+  <ellipse cx="70" cy="115" rx="8" ry="4" fill="#ffb3ba" opacity="0.6"/>
+  <ellipse cx="130" cy="115" rx="8" ry="4" fill="#ffb3ba" opacity="0.6"/>
+  <!-- Mouth -->
+  <path d="M95 125 Q100 130 105 125" stroke="#e17055" fill="none" stroke-width="2"/>
+  <!-- Label -->
+  <text x="100" y="185" text-anchor="middle" fill="#1a1a2e" font-family="system-ui" font-size="12" font-weight="bold">Anime</text>
+</svg>

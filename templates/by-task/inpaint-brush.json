@@ -8,6 +8,7 @@
   "tags": ["inpaint", "brush", "edit", "remove", "replace", "retouch"],
   "difficulty": "beginner",
   "category": "inpaint",
+  "preview": "inpaint.svg",
 
   "requirements": {
     "base_model": {

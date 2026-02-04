@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a0a2e"/>
+      <stop offset="50%" style="stop-color:#ff6b35"/>
+      <stop offset="100%" style="stop-color:#f7c59f"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#sky)"/>
+  <!-- Mountains -->
+  <polygon points="0,160 40,100 80,140 120,80 160,130 200,90 200,200 0,200" fill="#1a1a2e" opacity="0.9"/>
+  <polygon points="0,180 60,120 100,160 140,110 200,150 200,200 0,200" fill="#0d0d1a" opacity="0.95"/>
+  <!-- Sun -->
+  <circle cx="160" cy="70" r="25" fill="#ff9f43" opacity="0.9"/>
+  <!-- Cinematic bars -->
+  <rect x="0" y="0" width="200" height="25" fill="#000"/>
+  <rect x="0" y="175" width="200" height="25" fill="#000"/>
+  <!-- Label -->
+  <text x="100" y="190" text-anchor="middle" fill="#ffffff" font-family="system-ui" font-size="12" opacity="0.8">Cinematic</text>
+</svg>

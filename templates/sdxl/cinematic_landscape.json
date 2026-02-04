@@ -1,14 +1,160 @@
 {
+  "id": "sdxl-cinematic-landscape",
   "name": "Cinematic Landscape",
-  "description": "Epic landscape shots with cinematic lighting and volumetric fog",
-  "category": "landscape",
-  "tags": ["landscape", "cinematic", "nature", "golden hour"],
+  "version": "1.0.0",
+  "description": "Epic landscape shots with cinematic lighting and volumetric fog. Perfect for concept art and establishing shots.",
   "author": "RawDiffusion",
-  "thumbnail": null,
-  "settings": {
-    "steps": 30,
-    "cfg_scale": 7.5,
-    "width": 1024,
-    "height": 768
+  "license": "MIT",
+  "tags": ["landscape", "cinematic", "nature", "golden_hour", "epic", "sdxl"],
+  "difficulty": "beginner",
+  "category": "txt2img",
+  "preview": "cinematic.svg",
+
+  "requirements": {
+    "base_model": {
+      "architecture": "sdxl",
+      "recommended": ["juggernautXL_v9.safetensors", "realvisxl_v5.safetensors"],
+      "vram_minimum_gb": 8
+    }
+  },
+
+  "parameters": {
+    "prompt": {
+      "type": "string",
+      "default": "epic mountain landscape, volumetric fog, cinematic lighting, golden hour, dramatic clouds",
+      "label": "Scene Description",
+      "group": "basic"
+    },
+    "negative_prompt": {
+      "type": "string",
+      "default": "blurry, low quality, oversaturated, cartoon, anime, people, buildings, text, watermark",
+      "label": "Negative Prompt",
+      "group": "basic"
+    },
+    "lighting": {
+      "type": "select",
+      "default": "golden_hour",
+      "label": "Lighting",
+      "options": ["golden_hour", "blue_hour", "midday", "overcast", "stormy", "night"],
+      "group": "style"
+    },
+    "atmosphere": {
+      "type": "select",
+      "default": "foggy",
+      "label": "Atmosphere",
+      "options": ["clear", "foggy", "misty", "rainy", "snowy"],
+      "group": "style"
+    },
+    "width": {
+      "type": "integer",
+      "default": 1024,
+      "min": 768,
+      "max": 2048,
+      "step": 64,
+      "group": "advanced"
+    },
+    "height": {
+      "type": "integer",
+      "default": 768,
+      "min": 512,
+      "max": 1536,
+      "step": 64,
+      "group": "advanced"
+    },
+    "steps": {
+      "type": "integer",
+      "default": 30,
+      "min": 20,
+      "max": 60,
+      "group": "advanced"
+    },
+    "cfg_scale": {
+      "type": "number",
+      "default": 7.5,
+      "min": 1,
+      "max": 15,
+      "step": 0.5,
+      "group": "advanced"
+    },
+    "seed": {
+      "type": "integer",
+      "default": -1,
+      "group": "advanced"
+    }
+  },
+
+  "pipeline": [
+    {
+      "id": "load_model",
+      "type": "load_model",
+      "config": {
+        "model_type": "sdxl",
+        "scheduler": "DPM++ 2M Karras"
+      }
+    },
+    {
+      "id": "build_prompt",
+      "type": "build_prompt",
+      "config": {
+        "lighting_modifiers": {
+          "golden_hour": "golden hour lighting, warm tones, long shadows",
+          "blue_hour": "blue hour, twilight, cool tones",
+          "midday": "bright midday sun, high contrast",
+          "overcast": "soft overcast light, diffused shadows",
+          "stormy": "dramatic storm clouds, moody lighting",
+          "night": "moonlit, stars, night sky"
+        },
+        "atmosphere_modifiers": {
+          "clear": "crystal clear air",
+          "foggy": "volumetric fog, atmospheric depth",
+          "misty": "light morning mist",
+          "rainy": "rain, wet surfaces, reflections",
+          "snowy": "snow covered, winter atmosphere"
+        }
+      }
+    },
+    {
+      "id": "generate",
+      "type": "generate",
+      "config": {
+        "enable_freeu": true
+      },
+      "outputs": ["latents"]
+    },
+    {
+      "id": "decode",
+      "type": "decode"
+    },
+    {
+      "id": "save",
+      "type": "save"
+    }
+  ],
+
+  "presets": {
+    "epic_mountains": {
+      "prompt": "epic mountain range, snow capped peaks, volumetric fog in valleys, cinematic",
+      "lighting": "golden_hour",
+      "atmosphere": "foggy",
+      "description": "Dramatic mountain landscape"
+    },
+    "forest_path": {
+      "prompt": "dense forest, sunbeams through trees, mystical atmosphere, path leading into fog",
+      "lighting": "golden_hour",
+      "atmosphere": "misty",
+      "description": "Enchanted forest scene"
+    },
+    "ocean_cliffs": {
+      "prompt": "dramatic sea cliffs, crashing waves, lighthouse in distance, moody sky",
+      "lighting": "stormy",
+      "atmosphere": "foggy",
+      "description": "Coastal drama"
+    },
+    "desert_dunes": {
+      "prompt": "vast desert, sand dunes, clear sky, minimalist composition",
+      "lighting": "golden_hour",
+      "atmosphere": "clear",
+      "description": "Desert minimalism"
+    }
   }
 }

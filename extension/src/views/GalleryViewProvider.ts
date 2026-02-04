@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 import { TemplateManager, Template } from '../providers/TemplateManager';
 
 export class GalleryViewProvider implements vscode.WebviewViewProvider {
@@ -54,10 +56,53 @@ export class GalleryViewProvider implements vscode.WebviewViewProvider {
         }
 
         const templates = await this._templateManager.getTemplates();
+
+        // Load SVG previews for templates
+        const previewsPath = path.join(this._extensionContext.extensionPath, '..', 'templates', 'previews');
+        const templatesWithPreviews = templates.map(template => {
+            const result = { ...template, previewSvg: '' };
+
+            // Try to load preview SVG based on template category or explicit preview field
+            const previewFile = template.preview || this._getPreviewForCategory(template.category);
+            if (previewFile) {
+                const svgPath = path.join(previewsPath, previewFile);
+                if (fs.existsSync(svgPath)) {
+                    try {
+                        result.previewSvg = fs.readFileSync(svgPath, 'utf-8');
+                    } catch (e) {
+                        console.error(`Error loading preview ${svgPath}:`, e);
+                    }
+                }
+            }
+            return result;
+        });
+
         this._view.webview.postMessage({
             type: 'loadTemplates',
-            templates
+            templates: templatesWithPreviews
         });
+    }
+
+    private _getPreviewForCategory(category: string): string | null {
+        const categoryPreviews: Record<string, string> = {
+            'txt2img': 'portrait.svg',
+            'img2img': 'style-transfer.svg',
+            'inpaint': 'inpaint.svg',
+            'outpaint': 'inpaint.svg',
+            'upscale': 'upscale.svg',
+            'controlnet': 'controlnet.svg',
+            'style-transfer': 'style-transfer.svg',
+            'character': 'anime.svg',
+            'animation': 'video.svg',
+            'video': 'video.svg',
+            'portrait': 'portrait.svg',
+            'cinematic': 'cinematic.svg',
+            'fantasy': 'fantasy.svg',
+            'anime': 'anime.svg',
+            'lightning': 'lightning.svg',
+            'ipadapter': 'ipadapter.svg'
+        };
+        return categoryPreviews[category] || null;
     }
 
     private _getHtmlForWebview(webview: vscode.Webview): string {
@@ -146,16 +191,22 @@ export class GalleryViewProvider implements vscode.WebviewViewProvider {
 
         .template-card {
             border: 1px solid var(--border);
-            border-radius: 6px;
+            border-radius: 8px;
             overflow: hidden;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.2s ease;
             background: var(--bg-secondary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .template-card:hover {
             border-color: var(--accent);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        .template-card:hover .template-preview svg {
+            transform: scale(1.05);
         }
 
         .template-preview {
@@ -166,6 +217,17 @@ export class GalleryViewProvider implements vscode.WebviewViewProvider {
             align-items: center;
             justify-content: center;
             font-size: 32px;
+            overflow: hidden;
+        }
+
+        .template-preview svg {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.2s ease;
+        }
+
+        .template-preview-fallback {
+            font-size: 32px;
         }
 
         .template-info {
@@ -175,10 +237,22 @@ export class GalleryViewProvider implements vscode.WebviewViewProvider {
         .template-name {
             font-weight: 600;
             font-size: 12px;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .template-desc {
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 26px;
         }
 
         .template-meta {
@@ -504,10 +578,13 @@ export class GalleryViewProvider implements vscode.WebviewViewProvider {
             }
 
             grid.innerHTML = filtered.map(t => \`
-                <div class="template-card" data-id="\${t.id}">
-                    <div class="template-preview">\${categoryIcons[t.category] || '🎨'}</div>
+                <div class="template-card" data-id="\${t.id}" title="\${t.description || ''}">
+                    <div class="template-preview">
+                        \${t.previewSvg ? t.previewSvg : \`<span class="template-preview-fallback">\${categoryIcons[t.category] || '🎨'}</span>\`}
+                    </div>
                     <div class="template-info">
                         <div class="template-name">\${t.name}</div>
+                        <div class="template-desc">\${(t.description || '').slice(0, 60)}\${(t.description || '').length > 60 ? '...' : ''}</div>
                         <div class="template-meta">
                             <span class="template-category">\${t.category}</span>
                             <span class="template-difficulty difficulty-\${t.difficulty}">\${t.difficulty}</span>

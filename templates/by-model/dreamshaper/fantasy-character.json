@@ -8,6 +8,7 @@
   "tags": ["fantasy", "character", "rpg", "dnd", "warrior", "mage", "elf", "sd15"],
   "difficulty": "beginner",
   "category": "txt2img",
+  "preview": "fantasy.svg",
 
   "requirements": {
     "base_model": {

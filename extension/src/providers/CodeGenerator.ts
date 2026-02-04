@@ -132,20 +132,63 @@ export class CodeGenerator {
         lines.push(`MODEL_PATH = "${recommendedModels[0]}"`);
         lines.push('');
 
-        // Add all user-visible parameters
+        // Build final prompt with style modifiers from pipeline
+        const buildPromptStep = template.pipeline?.find(step => step.type === 'build_prompt');
+        let finalPrompt = params.prompt ?? template.parameters?.prompt?.default ?? '';
+        let promptNote = '';
+
+        if (buildPromptStep?.config) {
+            // Apply style templates if available
+            const styleTemplates = buildPromptStep.config.style_templates;
+            const selectedStyle = params.style || Object.keys(styleTemplates || {})[0];
+
+            if (styleTemplates && styleTemplates[selectedStyle]) {
+                finalPrompt = styleTemplates[selectedStyle].replace('{prompt}', finalPrompt);
+                promptNote = `  # Style: ${selectedStyle}`;
+            }
+
+            // Apply lighting modifiers
+            const lightingMods = buildPromptStep.config.lighting_modifiers;
+            const selectedLighting = params.lighting;
+            if (lightingMods && selectedLighting && lightingMods[selectedLighting]) {
+                finalPrompt = `${finalPrompt}, ${lightingMods[selectedLighting]}`;
+            }
+
+            // Apply atmosphere modifiers
+            const atmosphereMods = buildPromptStep.config.atmosphere_modifiers;
+            const selectedAtmosphere = params.atmosphere;
+            if (atmosphereMods && selectedAtmosphere && atmosphereMods[selectedAtmosphere]) {
+                finalPrompt = `${finalPrompt}, ${atmosphereMods[selectedAtmosphere]}`;
+            }
+        }
+
+        // Prompts section
+        lines.push('# Prompts');
+        lines.push('# TIP: Keep prompts on one line for the pipeline. Use commas to separate concepts.');
+        lines.push(`PROMPT = "${this.escapeString(finalPrompt)}"${promptNote}`);
+
+        const negPrompt = params.negative_prompt ?? template.parameters?.negative_prompt?.default ?? '';
+        lines.push(`NEGATIVE_PROMPT = "${this.escapeString(negPrompt)}"`);
+        lines.push('');
+
+        // Generation parameters
+        lines.push('# Generation Parameters');
         if (template.parameters) {
             for (const [key, param] of Object.entries(template.parameters)) {
+                // Skip prompts (handled above) and style/lighting/atmosphere (applied to prompt)
+                if (key.includes('prompt') || key === 'style' || key === 'lighting' || key === 'atmosphere') {
+                    continue;
+                }
+
                 const value = params[key] ?? param.default;
                 const comment = param.description ? `  # ${param.description}` : '';
 
                 if (param.type === 'string') {
-                    if (key.includes('prompt')) {
-                        lines.push(`${key.toUpperCase()} = """${value}"""`);
-                    } else {
-                        lines.push(`${key.toUpperCase()} = "${value}"${comment}`);
-                    }
+                    lines.push(`${key.toUpperCase()} = "${this.escapeString(value)}"${comment}`);
                 } else if (param.type === 'boolean') {
                     lines.push(`${key.toUpperCase()} = ${value ? 'True' : 'False'}${comment}`);
+                } else if (param.type === 'image') {
+                    lines.push(`${key.toUpperCase()} = "${value || 'input.png'}"${comment}`);
                 } else {
                     lines.push(`${key.toUpperCase()} = ${value}${comment}`);
                 }
@@ -162,6 +205,16 @@ export class CodeGenerator {
         lines.push('FREEU_B2 = 1.4');
 
         return lines;
+    }
+
+    private escapeString(str: string): string {
+        // Escape quotes and ensure single line
+        return str
+            .replace(/\\/g, '\\\\')
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, ' ')
+            .replace(/\r/g, '')
+            .trim();
     }
 
     private generateMainCode(template: Template, params: Record<string, any>, config: vscode.WorkspaceConfiguration): string[] {
