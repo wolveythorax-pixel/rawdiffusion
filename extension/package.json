@@ -14,96 +14,173 @@
   ],
   "keywords": [
     "stable diffusion",
-    "image generation",
-    "ai art",
     "diffusers",
-    "midjourney alternative"
+    "comfyui",
+    "ai",
+    "image generation",
+    "machine learning"
   ],
   "activationEvents": [
-    "onLanguage:python",
-    "onCommand:rawdiffusion.openGallery",
-    "onCommand:rawdiffusion.runWorkflow",
-    "workspaceContains:**/*.sdflow"
+    "onView:rawdiffusion.gallery",
+    "onCommand:rawdiffusion.openGallery"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "rawdiffusion.openGallery",
-        "title": "RawDiffusion: Open Gallery"
+        "title": "Open Gallery",
+        "category": "RawDiffusion",
+        "icon": "$(preview)"
+      },
+      {
+        "command": "rawdiffusion.generateCode",
+        "title": "Generate Python Code",
+        "category": "RawDiffusion",
+        "icon": "$(code)"
       },
       {
         "command": "rawdiffusion.runWorkflow",
-        "title": "RawDiffusion: Run Current Workflow"
+        "title": "Run Workflow",
+        "category": "RawDiffusion",
+        "icon": "$(play)"
       },
       {
-        "command": "rawdiffusion.explainCode",
-        "title": "RawDiffusion: Explain Selected Code"
+        "command": "rawdiffusion.importComfyUI",
+        "title": "Import ComfyUI Workflow",
+        "category": "RawDiffusion",
+        "icon": "$(folder-opened)"
       },
       {
-        "command": "rawdiffusion.saveAsTemplate",
-        "title": "RawDiffusion: Save as Template"
+        "command": "rawdiffusion.configureModels",
+        "title": "Configure Model Paths",
+        "category": "RawDiffusion",
+        "icon": "$(gear)"
       },
       {
-        "command": "rawdiffusion.startServer",
-        "title": "RawDiffusion: Start Server"
+        "command": "rawdiffusion.refreshGallery",
+        "title": "Refresh Gallery",
+        "category": "RawDiffusion",
+        "icon": "$(refresh)"
       }
     ],
-    "keybindings": [
-      {
-        "command": "rawdiffusion.runWorkflow",
-        "key": "ctrl+shift+r",
-        "mac": "cmd+shift+r",
-        "when": "editorTextFocus"
-      }
-    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "rawdiffusion",
+          "title": "RawDiffusion",
+          "icon": "media/icons/rawdiffusion.svg"
+        }
+      ]
+    },
+    "views": {
+      "rawdiffusion": [
+        {
+          "type": "webview",
+          "id": "rawdiffusion.gallery",
+          "name": "Template Gallery"
+        },
+        {
+          "id": "rawdiffusion.recent",
+          "name": "Recent Generations"
+        },
+        {
+          "id": "rawdiffusion.models",
+          "name": "Available Models"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "rawdiffusion.importComfyUI",
+          "when": "view == rawdiffusion.gallery",
+          "group": "navigation"
+        },
+        {
+          "command": "rawdiffusion.refreshGallery",
+          "when": "view == rawdiffusion.gallery",
+          "group": "navigation"
+        },
+        {
+          "command": "rawdiffusion.configureModels",
+          "when": "view == rawdiffusion.models",
+          "group": "navigation"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "rawdiffusion.runWorkflow",
+          "when": "resourceFilename =~ /.*\\.py$/",
+          "group": "navigation"
+        }
+      ]
+    },
     "configuration": {
       "title": "RawDiffusion",
       "properties": {
-        "rawdiffusion.serverPort": {
-          "type": "number",
-          "default": 8420,
-          "description": "Port for the RawDiffusion server"
+        "rawdiffusion.modelPaths": {
+          "type": "array",
+          "default": [],
+          "description": "Paths to search for model files (.safetensors, .ckpt)",
+          "items": {
+            "type": "string"
+          }
         },
-        "rawdiffusion.galleryPort": {
-          "type": "number",
-          "default": 8421,
-          "description": "Port for the gallery browser UI"
-        },
-        "rawdiffusion.defaultProvider": {
+        "rawdiffusion.pythonPath": {
           "type": "string",
-          "enum": ["local", "stability", "replicate", "fal", "runpod"],
-          "default": "local",
-          "description": "Default provider for new workflows"
+          "default": "python3",
+          "description": "Path to Python interpreter with diffusers installed"
         },
-        "rawdiffusion.localModelsPath": {
+        "rawdiffusion.outputDirectory": {
+          "type": "string",
+          "default": "./outputs",
+          "description": "Directory for generated images"
+        },
+        "rawdiffusion.defaultDevice": {
+          "type": "string",
+          "enum": ["auto", "cuda", "cpu", "mps"],
+          "default": "auto",
+          "description": "Default device for inference"
+        },
+        "rawdiffusion.enableFreeU": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable FreeU quality enhancement by default"
+        },
+        "rawdiffusion.enableMemoryOptimization": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable CPU offloading for lower VRAM usage"
+        },
+        "rawdiffusion.templateDirectory": {
           "type": "string",
           "default": "",
-          "description": "Path to local model checkpoints"
+          "description": "Custom directory for additional templates"
         },
         "rawdiffusion.stabilityApiKey": {
           "type": "string",
           "default": "",
-          "description": "Stability AI API key"
+          "description": "Stability AI API key (for cloud generation)"
         },
         "rawdiffusion.replicateApiKey": {
           "type": "string",
           "default": "",
-          "description": "Replicate API key"
-        },
-        "rawdiffusion.falApiKey": {
-          "type": "string",
-          "default": "",
-          "description": "FAL.ai API key"
+          "description": "Replicate API key (for cloud generation)"
         }
       }
     },
-    "languages": [
+    "keybindings": [
       {
-        "id": "sdflow",
-        "aliases": ["SD Workflow", "sdflow"],
-        "extensions": [".sdflow", ".sdw"],
-        "configuration": "./language-configuration.json"
+        "command": "rawdiffusion.openGallery",
+        "key": "ctrl+shift+g",
+        "mac": "cmd+shift+g"
+      },
+      {
+        "command": "rawdiffusion.runWorkflow",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r",
+        "when": "editorTextFocus && resourceFilename =~ /.*\\.py$/"
       }
     ]
   },
@@ -111,17 +188,25 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "lint": "eslint src --ext ts"
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "package": "vsce package"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^20.x",
     "@types/vscode": "^1.85.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "eslint": "^8.0.0",
-    "typescript": "^5.0.0"
+    "@typescript-eslint/eslint-plugin": "^6.x",
+    "@typescript-eslint/parser": "^6.x",
+    "eslint": "^8.x",
+    "typescript": "^5.x",
+    "@vscode/vsce": "^2.x"
   },
   "dependencies": {
-    "ws": "^8.14.0"
-  }
+    "glob": "^10.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wolveythorax-pixel/rawdiffusion"
+  },
+  "license": "MIT"
 }
