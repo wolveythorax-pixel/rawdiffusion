@@ -57,20 +57,30 @@ export class GalleryViewProvider implements vscode.WebviewViewProvider {
 
         const templates = await this._templateManager.getTemplates();
 
-        // Load SVG previews for templates
+        // Load previews for templates (supports SVG, PNG, JPG, WebP)
         const previewsPath = path.join(this._extensionContext.extensionPath, '..', 'templates', 'previews');
         const templatesWithPreviews = templates.map(template => {
-            const result = { ...template, previewSvg: '' };
+            const result = { ...template, previewSvg: '', previewImage: '' };
 
-            // Try to load preview SVG based on template category or explicit preview field
+            // Try to load preview based on template category or explicit preview field
             const previewFile = template.preview || this._getPreviewForCategory(template.category);
             if (previewFile) {
-                const svgPath = path.join(previewsPath, previewFile);
-                if (fs.existsSync(svgPath)) {
+                const previewFullPath = path.join(previewsPath, previewFile);
+                if (fs.existsSync(previewFullPath)) {
                     try {
-                        result.previewSvg = fs.readFileSync(svgPath, 'utf-8');
+                        const ext = path.extname(previewFile).toLowerCase();
+                        if (ext === '.svg') {
+                            result.previewSvg = fs.readFileSync(previewFullPath, 'utf-8');
+                        } else if (['.png', '.jpg', '.jpeg', '.webp'].includes(ext)) {
+                            // Convert image to data URI for webview
+                            const imageData = fs.readFileSync(previewFullPath);
+                            const base64 = imageData.toString('base64');
+                            const mimeType = ext === '.png' ? 'image/png' :
+                                           ext === '.webp' ? 'image/webp' : 'image/jpeg';
+                            result.previewImage = `data:${mimeType};base64,${base64}`;
+                        }
                     } catch (e) {
-                        console.error(`Error loading preview ${svgPath}:`, e);
+                        console.error(`Error loading preview ${previewFullPath}:`, e);
                     }
                 }
             }
@@ -205,7 +215,8 @@ export class GalleryViewProvider implements vscode.WebviewViewProvider {
             box-shadow: 0 6px 12px rgba(0,0,0,0.2);
         }
 
-        .template-card:hover .template-preview svg {
+        .template-card:hover .template-preview svg,
+        .template-card:hover .template-preview img {
             transform: scale(1.05);
         }
 
@@ -220,9 +231,11 @@ export class GalleryViewProvider implements vscode.WebviewViewProvider {
             overflow: hidden;
         }
 
-        .template-preview svg {
+        .template-preview svg,
+        .template-preview img {
             width: 100%;
             height: 100%;
+            object-fit: cover;
             transition: transform 0.2s ease;
         }
 
@@ -580,7 +593,11 @@ export class GalleryViewProvider implements vscode.WebviewViewProvider {
             grid.innerHTML = filtered.map(t => \`
                 <div class="template-card" data-id="\${t.id}" title="\${t.description || ''}">
                     <div class="template-preview">
-                        \${t.previewSvg ? t.previewSvg : \`<span class="template-preview-fallback">\${categoryIcons[t.category] || '🎨'}</span>\`}
+                        \${t.previewImage
+                            ? \`<img src="\${t.previewImage}" alt="\${t.name}" />\`
+                            : t.previewSvg
+                                ? t.previewSvg
+                                : \`<span class="template-preview-fallback">\${categoryIcons[t.category] || '🎨'}</span>\`}
                     </div>
                     <div class="template-info">
                         <div class="template-name">\${t.name}</div>

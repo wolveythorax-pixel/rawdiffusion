@@ -8,7 +8,7 @@
   "tags": ["upscale", "enhance", "super-resolution", "detail", "4k"],
   "difficulty": "beginner",
   "category": "upscale",
-  "preview": "upscale.svg",
+  "preview": "upscale.png",
 
   "requirements": {
     "base_model": {

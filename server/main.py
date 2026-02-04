@@ -65,30 +65,74 @@ async def list_templates():
     """List all available templates"""
     templates = []
 
-    for model_dir in TEMPLATES_DIR.iterdir():
-        if not model_dir.is_dir():
+    # Directories to scan for templates
+    template_dirs = [
+        TEMPLATES_DIR / "by-model",
+        TEMPLATES_DIR / "by-task",
+        TEMPLATES_DIR / "sdxl",
+        TEMPLATES_DIR / "sd15",
+        TEMPLATES_DIR / "flux",
+    ]
+
+    previews_dir = TEMPLATES_DIR / "previews"
+
+    for base_dir in template_dirs:
+        if not base_dir.exists():
             continue
 
-        for template_file in model_dir.glob("*.sdflow"):
-            meta_file = template_file.with_suffix(".json")
+        # Recursively find all JSON template files
+        for template_file in base_dir.rglob("*.json"):
+            if "schema" in str(template_file):
+                continue
 
-            # Read template code
-            code = template_file.read_text()
+            try:
+                meta = json.loads(template_file.read_text())
 
-            # Read metadata if exists
-            meta = {}
-            if meta_file.exists():
-                meta = json.loads(meta_file.read_text())
+                # Skip if missing required fields
+                if not meta.get("id") or not meta.get("name"):
+                    continue
 
-            templates.append({
-                "id": f"{model_dir.name}/{template_file.stem}",
-                "name": meta.get("name", template_file.stem),
-                "description": meta.get("description", ""),
-                "model": model_dir.name,
-                "category": meta.get("category", "general"),
-                "thumbnail": meta.get("thumbnail"),
-                "code": code
-            })
+                # Get preview thumbnail URL
+                thumbnail = None
+                preview_file = meta.get("preview", "")
+                if preview_file:
+                    preview_path = previews_dir / preview_file
+                    if preview_path.exists():
+                        thumbnail = f"/previews/{preview_file}"
+
+                # Get model architecture from requirements
+                model = meta.get("requirements", {}).get("base_model", {}).get("architecture", "unknown")
+                if model == "sdxl":
+                    model = "SDXL"
+                elif model == "sd15":
+                    model = "SD 1.5"
+                elif model == "flux":
+                    model = "Flux"
+
+                # Generate placeholder code (full code gen happens in VS Code extension)
+                code = f'''# {meta.get("name")}
+# {meta.get("description", "")}
+#
+# Template ID: {meta.get("id")}
+# Model: {model}
+#
+# Open in VS Code for full code generation
+'''
+
+                templates.append({
+                    "id": meta.get("id"),
+                    "name": meta.get("name"),
+                    "description": meta.get("description", ""),
+                    "model": model,
+                    "category": meta.get("category", "general"),
+                    "thumbnail": thumbnail,
+                    "code": code,
+                    "difficulty": meta.get("difficulty", "beginner"),
+                    "tags": meta.get("tags", [])
+                })
+            except Exception as e:
+                print(f"Error loading template {template_file}: {e}")
+                continue
 
     return templates
 
@@ -173,6 +217,15 @@ async def get_output(filename: str):
     file_path = OUTPUT_DIR / filename
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(file_path)
+
+
+@app.get("/previews/{filename}")
+async def get_preview(filename: str):
+    """Serve template preview images"""
+    file_path = TEMPLATES_DIR / "previews" / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Preview not found")
     return FileResponse(file_path)
 
 

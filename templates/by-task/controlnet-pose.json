@@ -8,7 +8,7 @@
   "tags": ["controlnet", "pose", "openpose", "character", "consistency"],
   "difficulty": "intermediate",
   "category": "controlnet",
-  "preview": "controlnet.svg",
+  "preview": "controlnet.png",
 
   "requirements": {
     "base_model": {

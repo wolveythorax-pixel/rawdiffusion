@@ -8,7 +8,7 @@
   "tags": ["ipadapter", "style", "reference", "consistency", "character"],
   "difficulty": "intermediate",
   "category": "style-transfer",
-  "preview": "ipadapter.svg",
+  "preview": "ipadapter.png",
 
   "requirements": {
     "base_model": {

@@ -8,7 +8,7 @@
   "tags": ["fast", "lightning", "lcm", "rapid", "iteration", "sdxl"],
   "difficulty": "beginner",
   "category": "txt2img",
-  "preview": "lightning.svg",
+  "preview": "lightning.png",
   "source": {
     "type": "comfyui",
     "url": "https://civitai.com/models/325730/juggernaut-xl-lightning-simple-workflow"

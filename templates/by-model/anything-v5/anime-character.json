@@ -8,7 +8,7 @@
   "tags": ["anime", "manga", "character", "waifu", "illustration", "sd15"],
   "difficulty": "beginner",
   "category": "txt2img",
-  "preview": "anime.svg",
+  "preview": "anime.png",
 
   "requirements": {
     "base_model": {

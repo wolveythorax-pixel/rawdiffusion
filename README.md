@@ -1,6 +1,6 @@
 # RawDiffusion
 
-**Browse like Midjourney. Code like a developer. Own your workflow.**
+**Browse visually. Code cleanly. Own everything.**
 
 No nodes. No black boxes. No subscriptions.
 
@@ -14,7 +14,7 @@ Every image generation tool hides the code from you:
 
 - **ComfyUI** buries it behind confusing node graphs
 - **Forge/A1111** hides it behind forms and dropdowns
-- **Midjourney/Leonardo** hides it behind a paywall and API you can't see
+- **Cloud services** hide it behind paywalls and APIs you can't see
 - **Cloud services** show you pretty demos but never how they're made
 
 When something breaks, you're stuck. When you want to customize, you're limited. You're always dependent on the tool instead of understanding it.
@@ -162,4 +162,4 @@ MIT - Do whatever you want with it.
 
 ---
 
-*"Browse like Midjourney. Code like a developer. Own your workflow."*
+*"Browse visually. Code cleanly. Own everything."*

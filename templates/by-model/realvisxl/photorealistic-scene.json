@@ -8,7 +8,7 @@
   "tags": ["photorealistic", "realistic", "photography", "product", "environment", "sdxl"],
   "difficulty": "beginner",
   "category": "txt2img",
-  "preview": "portrait.svg",
+  "preview": "portrait.png",
 
   "requirements": {
     "base_model": {
