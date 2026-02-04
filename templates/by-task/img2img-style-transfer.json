@@ -1,0 +1,214 @@
+{
+  "id": "img2img-style-transfer",
+  "name": "Style Transfer / Image Variation",
+  "version": "1.0.0",
+  "description": "Transform images into different styles while preserving composition. Turn photos into paintings, sketches into renders, day into night.",
+  "author": "RawDiffusion",
+  "license": "MIT",
+  "tags": ["img2img", "style", "transfer", "variation", "transform"],
+  "difficulty": "beginner",
+  "category": "img2img",
+
+  "requirements": {
+    "base_model": {
+      "architecture": "sd15",
+      "recommended": ["dreamshaper_8.safetensors", "realisticVision_v5.safetensors"],
+      "vram_minimum_gb": 4
+    }
+  },
+
+  "parameters": {
+    "image": {
+      "type": "image",
+      "label": "Input Image",
+      "group": "input",
+      "required": true
+    },
+    "prompt": {
+      "type": "string",
+      "default": "oil painting style",
+      "label": "Target Style",
+      "description": "Describe the style you want",
+      "group": "basic"
+    },
+    "negative_prompt": {
+      "type": "string",
+      "default": "blurry, low quality, distorted",
+      "group": "basic"
+    },
+    "style_preset": {
+      "type": "select",
+      "default": "custom",
+      "label": "Style Preset",
+      "options": ["custom", "oil_painting", "watercolor", "sketch", "anime", "photorealistic", "cyberpunk", "fantasy", "vintage", "noir"],
+      "group": "basic"
+    },
+    "strength": {
+      "type": "number",
+      "default": 0.65,
+      "label": "Transform Strength",
+      "description": "0 = keep original, 1 = full transformation",
+      "min": 0.1,
+      "max": 1.0,
+      "step": 0.05,
+      "group": "basic"
+    },
+    "preserve_composition": {
+      "type": "boolean",
+      "default": true,
+      "label": "Preserve Composition",
+      "description": "Maintain original layout and structure",
+      "group": "style"
+    },
+    "color_match": {
+      "type": "boolean",
+      "default": false,
+      "label": "Match Original Colors",
+      "description": "Keep similar color palette",
+      "group": "style"
+    },
+    "detail_level": {
+      "type": "select",
+      "default": "medium",
+      "label": "Detail Level",
+      "options": ["low", "medium", "high", "ultra"],
+      "group": "style"
+    },
+    "resize_mode": {
+      "type": "select",
+      "default": "resize_and_fill",
+      "label": "Resize Mode",
+      "options": ["just_resize", "crop_and_resize", "resize_and_fill"],
+      "group": "advanced"
+    },
+    "width": {
+      "type": "integer",
+      "default": 512,
+      "min": 384,
+      "max": 1024,
+      "step": 64,
+      "group": "advanced"
+    },
+    "height": {
+      "type": "integer",
+      "default": 512,
+      "min": 384,
+      "max": 1024,
+      "step": 64,
+      "group": "advanced"
+    },
+    "steps": {
+      "type": "integer",
+      "default": 30,
+      "min": 10,
+      "max": 80,
+      "group": "advanced"
+    },
+    "cfg_scale": {
+      "type": "number",
+      "default": 7.0,
+      "min": 1,
+      "max": 15,
+      "group": "advanced"
+    },
+    "seed": {
+      "type": "integer",
+      "default": -1,
+      "group": "advanced"
+    }
+  },
+
+  "pipeline": [
+    {"id": "load_model", "type": "load_model", "config": {"model_type": "sd15"}},
+    {
+      "id": "prepare_image",
+      "type": "preprocess",
+      "config": {"operation": "resize"},
+      "inputs": {
+        "image": "image",
+        "mode": "resize_mode",
+        "width": "width",
+        "height": "height"
+      }
+    },
+    {
+      "id": "apply_style_prompt",
+      "type": "encode_prompt",
+      "config": {
+        "style_templates": {
+          "oil_painting": "oil painting, thick brushstrokes, textured canvas, rich colors, masterpiece",
+          "watercolor": "watercolor painting, soft edges, color bleeding, wet on wet, artistic",
+          "sketch": "pencil sketch, detailed linework, cross-hatching, black and white",
+          "anime": "anime style, cel shading, vibrant colors, detailed, high quality anime",
+          "photorealistic": "photorealistic, 8k uhd, highly detailed, sharp focus, professional photography",
+          "cyberpunk": "cyberpunk style, neon lights, futuristic, high tech, dark atmosphere",
+          "fantasy": "fantasy art style, magical, ethereal, detailed, epic lighting",
+          "vintage": "vintage photograph, film grain, faded colors, nostalgic, retro",
+          "noir": "film noir style, black and white, high contrast, dramatic shadows"
+        }
+      }
+    },
+    {
+      "id": "generate",
+      "type": "generate",
+      "config": {
+        "mode": "img2img",
+        "scheduler": "DPM++ 2M Karras"
+      },
+      "inputs": {
+        "strength": "strength"
+      }
+    },
+    {
+      "id": "color_match_post",
+      "type": "postprocess",
+      "config": {"operation": "color_transfer"},
+      "inputs": {"reference": "image"},
+      "skip_if": {"color_match": false}
+    },
+    {"id": "decode", "type": "decode"},
+    {"id": "save", "type": "save"}
+  ],
+
+  "presets": {
+    "subtle_variation": {
+      "strength": 0.35,
+      "preserve_composition": true,
+      "description": "Small variations keeping most of the original"
+    },
+    "style_conversion": {
+      "strength": 0.65,
+      "preserve_composition": true,
+      "description": "Clear style change, keeps composition"
+    },
+    "creative_reimagine": {
+      "strength": 0.85,
+      "preserve_composition": false,
+      "description": "Major transformation, loose interpretation"
+    },
+    "day_to_night": {
+      "strength": 0.6,
+      "prompt": "nighttime, moonlight, stars, dark sky, city lights",
+      "preserve_composition": true
+    },
+    "summer_to_winter": {
+      "strength": 0.55,
+      "prompt": "winter scene, snow covered, frost, cold atmosphere",
+      "preserve_composition": true
+    }
+  },
+
+  "app_adaptations": {
+    "vscode": {"generate_standalone": true},
+    "davinci": {
+      "timeline_integration": true,
+      "batch_frames": true,
+      "notes": "Apply style transfer to video sequences. Use consistent seed for temporal coherence."
+    },
+    "gimp": {
+      "layer_output": true,
+      "selection_as_mask": true,
+      "notes": "Transform selected regions only. Blend mode with original layer for fine control."
+    }
+  }
+}

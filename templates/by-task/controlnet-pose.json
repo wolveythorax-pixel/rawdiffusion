@@ -1,0 +1,200 @@
+{
+  "id": "controlnet-pose-guided",
+  "name": "Pose-Guided Generation",
+  "version": "1.0.0",
+  "description": "Generate characters in specific poses using OpenPose ControlNet. Perfect for consistent character poses across multiple images.",
+  "author": "RawDiffusion",
+  "license": "MIT",
+  "tags": ["controlnet", "pose", "openpose", "character", "consistency"],
+  "difficulty": "intermediate",
+  "category": "controlnet",
+
+  "requirements": {
+    "base_model": {
+      "architecture": "sd15",
+      "recommended": ["dreamshaper_8.safetensors", "realisticVision_v5.safetensors"],
+      "vram_minimum_gb": 6
+    },
+    "controlnets": [
+      {
+        "type": "openpose",
+        "model": "lllyasviel/control_v11p_sd15_openpose",
+        "required": true
+      }
+    ]
+  },
+
+  "parameters": {
+    "reference_image": {
+      "type": "image",
+      "label": "Pose Reference",
+      "description": "Image to extract pose from (or pre-made skeleton)",
+      "group": "input"
+    },
+    "prompt": {
+      "type": "string",
+      "default": "a person standing",
+      "label": "Character Description",
+      "group": "basic"
+    },
+    "negative_prompt": {
+      "type": "string",
+      "default": "deformed, bad anatomy, bad hands, missing limbs, extra limbs, blurry, low quality",
+      "group": "basic"
+    },
+    "pose_source": {
+      "type": "select",
+      "default": "detect",
+      "label": "Pose Source",
+      "options": ["detect", "skeleton", "densepose"],
+      "description": "detect = extract from image, skeleton = use pre-made pose",
+      "group": "basic"
+    },
+    "controlnet_strength": {
+      "type": "number",
+      "default": 1.0,
+      "label": "Pose Influence",
+      "min": 0.0,
+      "max": 2.0,
+      "step": 0.05,
+      "group": "basic"
+    },
+    "controlnet_start": {
+      "type": "number",
+      "default": 0.0,
+      "label": "Start Step %",
+      "description": "When to start applying pose guidance",
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.05,
+      "group": "advanced"
+    },
+    "controlnet_end": {
+      "type": "number",
+      "default": 1.0,
+      "label": "End Step %",
+      "description": "When to stop applying pose guidance",
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.05,
+      "group": "advanced"
+    },
+    "include_hands": {
+      "type": "boolean",
+      "default": true,
+      "label": "Detect Hands",
+      "description": "Include hand pose detection",
+      "group": "advanced"
+    },
+    "include_face": {
+      "type": "boolean",
+      "default": true,
+      "label": "Detect Face",
+      "description": "Include face landmarks",
+      "group": "advanced"
+    },
+    "width": {
+      "type": "integer",
+      "default": 512,
+      "min": 384,
+      "max": 1024,
+      "step": 64,
+      "group": "advanced"
+    },
+    "height": {
+      "type": "integer",
+      "default": 768,
+      "min": 384,
+      "max": 1024,
+      "step": 64,
+      "group": "advanced"
+    },
+    "steps": {
+      "type": "integer",
+      "default": 30,
+      "min": 10,
+      "max": 80,
+      "group": "advanced"
+    },
+    "cfg_scale": {
+      "type": "number",
+      "default": 7.0,
+      "min": 1,
+      "max": 15,
+      "group": "advanced"
+    },
+    "seed": {
+      "type": "integer",
+      "default": -1,
+      "group": "advanced"
+    }
+  },
+
+  "pipeline": [
+    {"id": "load_model", "type": "load_model", "config": {"model_type": "sd15"}},
+    {
+      "id": "load_controlnet",
+      "type": "load_controlnet",
+      "config": {"type": "openpose"}
+    },
+    {
+      "id": "detect_pose",
+      "type": "preprocess",
+      "config": {"preprocessor": "openpose"},
+      "inputs": {
+        "image": "reference_image",
+        "include_hands": "include_hands",
+        "include_face": "include_face"
+      },
+      "outputs": ["pose_image"],
+      "skip_if": {"pose_source": "skeleton"}
+    },
+    {
+      "id": "generate",
+      "type": "generate",
+      "config": {"scheduler": "DPM++ 2M Karras"},
+      "inputs": {
+        "controlnet_image": "detect_pose.pose_image",
+        "controlnet_strength": "controlnet_strength",
+        "controlnet_start": "controlnet_start",
+        "controlnet_end": "controlnet_end"
+      }
+    },
+    {"id": "decode", "type": "decode"},
+    {"id": "save", "type": "save"}
+  ],
+
+  "presets": {
+    "strict_pose": {
+      "controlnet_strength": 1.2,
+      "controlnet_start": 0.0,
+      "controlnet_end": 1.0,
+      "description": "Follow pose exactly"
+    },
+    "loose_pose": {
+      "controlnet_strength": 0.6,
+      "controlnet_start": 0.0,
+      "controlnet_end": 0.5,
+      "description": "Use pose as rough guide"
+    },
+    "character_consistency": {
+      "controlnet_strength": 0.8,
+      "include_hands": true,
+      "include_face": true,
+      "description": "Good for same character in different scenes"
+    }
+  },
+
+  "app_adaptations": {
+    "vscode": {"generate_standalone": true},
+    "davinci": {
+      "timeline_integration": true,
+      "batch_frames": true,
+      "notes": "Extract poses from video frames for consistent character animation"
+    },
+    "gimp": {
+      "layer_output": true,
+      "notes": "Pose skeleton overlaid on separate layer for reference"
+    }
+  }
+}

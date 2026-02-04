@@ -1,0 +1,165 @@
+{
+  "id": "dreamshaper-fantasy-character",
+  "name": "Fantasy Character Creator",
+  "version": "1.0.0",
+  "description": "Create detailed fantasy characters - warriors, mages, elves, and more. DreamShaper excels at blending realistic and stylized elements.",
+  "author": "RawDiffusion",
+  "license": "MIT",
+  "tags": ["fantasy", "character", "rpg", "dnd", "warrior", "mage", "elf", "sd15"],
+  "difficulty": "beginner",
+  "category": "txt2img",
+
+  "requirements": {
+    "base_model": {
+      "architecture": "sd15",
+      "recommended": ["dreamshaper_8.safetensors", "dreamshaper_7.safetensors"],
+      "vram_minimum_gb": 4
+    }
+  },
+
+  "parameters": {
+    "prompt": {
+      "type": "string",
+      "default": "a powerful mage wielding arcane energy",
+      "label": "Character Description",
+      "group": "basic"
+    },
+    "negative_prompt": {
+      "type": "string",
+      "default": "deformed, ugly, bad anatomy, bad hands, missing fingers, extra fingers, blurry, low quality",
+      "group": "basic"
+    },
+    "character_class": {
+      "type": "select",
+      "default": "mage",
+      "label": "Class",
+      "options": ["warrior", "mage", "rogue", "ranger", "paladin", "necromancer", "druid", "bard", "monk"],
+      "group": "basic"
+    },
+    "race": {
+      "type": "select",
+      "default": "human",
+      "label": "Race",
+      "options": ["human", "elf", "dwarf", "orc", "tiefling", "dragonborn", "halfling", "undead"],
+      "group": "basic"
+    },
+    "gender": {
+      "type": "select",
+      "default": "female",
+      "options": ["female", "male", "androgynous"],
+      "group": "basic"
+    },
+    "armor_style": {
+      "type": "select",
+      "default": "robes",
+      "label": "Armor/Clothing",
+      "options": ["robes", "leather armor", "chainmail", "plate armor", "cloth", "tribal", "royal attire", "battle damaged"],
+      "group": "style"
+    },
+    "setting": {
+      "type": "select",
+      "default": "mystical forest",
+      "label": "Background Setting",
+      "options": ["mystical forest", "castle", "dungeon", "battlefield", "tavern", "throne room", "ruins", "void/magic"],
+      "group": "style"
+    },
+    "art_style": {
+      "type": "select",
+      "default": "detailed fantasy",
+      "label": "Art Style",
+      "options": ["detailed fantasy", "oil painting", "concept art", "book cover", "semi-realistic", "dark fantasy"],
+      "group": "style"
+    },
+    "pose": {
+      "type": "select",
+      "default": "standing heroic",
+      "label": "Pose",
+      "options": ["standing heroic", "action pose", "casting spell", "battle stance", "sitting", "portrait"],
+      "group": "style"
+    },
+    "width": {
+      "type": "integer",
+      "default": 512,
+      "min": 384,
+      "max": 768,
+      "step": 64,
+      "group": "advanced"
+    },
+    "height": {
+      "type": "integer",
+      "default": 768,
+      "min": 384,
+      "max": 1024,
+      "step": 64,
+      "group": "advanced"
+    },
+    "steps": {
+      "type": "integer",
+      "default": 30,
+      "min": 10,
+      "max": 80,
+      "group": "advanced"
+    },
+    "cfg_scale": {
+      "type": "number",
+      "default": 7.0,
+      "min": 1,
+      "max": 15,
+      "group": "advanced"
+    },
+    "seed": {
+      "type": "integer",
+      "default": -1,
+      "group": "advanced"
+    }
+  },
+
+  "pipeline": [
+    {"id": "load_model", "type": "load_model", "config": {"model_type": "sd15"}},
+    {
+      "id": "build_prompt",
+      "type": "encode_prompt",
+      "config": {
+        "template": "{art_style} artwork of a {gender} {race} {character_class}, {armor_style}, {pose}, {setting} background, {prompt}, highly detailed, intricate, sharp focus, dramatic lighting, by greg rutkowski, by alphonse mucha"
+      }
+    },
+    {"id": "generate", "type": "generate", "config": {"scheduler": "DPM++ 2M Karras"}},
+    {"id": "decode", "type": "decode"},
+    {"id": "save", "type": "save"}
+  ],
+
+  "presets": {
+    "dark_souls_knight": {
+      "character_class": "warrior",
+      "race": "human",
+      "armor_style": "plate armor",
+      "setting": "ruins",
+      "art_style": "dark fantasy",
+      "pose": "battle stance"
+    },
+    "high_elf_mage": {
+      "character_class": "mage",
+      "race": "elf",
+      "armor_style": "robes",
+      "setting": "mystical forest",
+      "art_style": "detailed fantasy",
+      "pose": "casting spell"
+    },
+    "orc_berserker": {
+      "character_class": "warrior",
+      "race": "orc",
+      "armor_style": "tribal",
+      "setting": "battlefield",
+      "art_style": "concept art",
+      "pose": "action pose"
+    }
+  },
+
+  "app_adaptations": {
+    "vscode": {"generate_standalone": true},
+    "gimp": {
+      "layer_output": true,
+      "notes": "Great for character concept iteration"
+    }
+  }
+}

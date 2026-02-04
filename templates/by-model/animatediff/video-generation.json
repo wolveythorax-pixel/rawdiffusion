@@ -1,0 +1,261 @@
+{
+  "id": "animatediff-video-generation",
+  "name": "AnimateDiff Video Generator",
+  "version": "1.0.0",
+  "description": "Generate short video clips from text prompts. Essential for motion graphics, b-roll, and creative video content. Integrates with DaVinci Resolve timeline.",
+  "author": "RawDiffusion",
+  "license": "MIT",
+  "tags": ["video", "animation", "motion", "clip", "animatediff", "sd15"],
+  "difficulty": "intermediate",
+  "category": "animation",
+
+  "requirements": {
+    "base_model": {
+      "architecture": "sd15",
+      "recommended": ["dreamshaper_8.safetensors", "realisticVision_v5.safetensors"],
+      "vram_minimum_gb": 8
+    },
+    "extensions": ["animatediff"],
+    "motion_module": {
+      "recommended": ["mm_sd_v15_v2.ckpt", "mm_sd_v15.ckpt"],
+      "description": "AnimateDiff motion module"
+    }
+  },
+
+  "parameters": {
+    "prompt": {
+      "type": "string",
+      "default": "a beautiful sunset over the ocean, waves gently rolling, clouds moving slowly",
+      "label": "Scene Description",
+      "description": "Describe the scene and motion you want",
+      "group": "basic"
+    },
+    "negative_prompt": {
+      "type": "string",
+      "default": "low quality, blurry, distorted, deformed, static, jpeg artifacts, watermark",
+      "group": "basic"
+    },
+    "motion_type": {
+      "type": "select",
+      "default": "natural",
+      "label": "Motion Style",
+      "options": ["natural", "slow motion", "timelapse", "dynamic", "subtle", "dramatic"],
+      "group": "basic"
+    },
+    "camera_motion": {
+      "type": "select",
+      "default": "static",
+      "label": "Camera Motion",
+      "options": ["static", "pan left", "pan right", "tilt up", "tilt down", "zoom in", "zoom out", "tracking"],
+      "group": "style"
+    },
+    "frame_count": {
+      "type": "integer",
+      "default": 16,
+      "label": "Frames",
+      "description": "Number of frames (16 = ~1 sec at 16fps)",
+      "min": 8,
+      "max": 32,
+      "step": 4,
+      "group": "basic"
+    },
+    "fps": {
+      "type": "integer",
+      "default": 16,
+      "label": "FPS",
+      "options": [8, 12, 16, 24, 30],
+      "group": "basic"
+    },
+    "loop": {
+      "type": "boolean",
+      "default": false,
+      "label": "Seamless Loop",
+      "description": "Generate a seamless looping clip",
+      "group": "style"
+    },
+    "motion_scale": {
+      "type": "number",
+      "default": 1.0,
+      "label": "Motion Amount",
+      "description": "Higher = more motion",
+      "min": 0.5,
+      "max": 2.0,
+      "step": 0.1,
+      "group": "advanced"
+    },
+    "width": {
+      "type": "integer",
+      "default": 512,
+      "min": 256,
+      "max": 768,
+      "step": 64,
+      "group": "advanced"
+    },
+    "height": {
+      "type": "integer",
+      "default": 512,
+      "min": 256,
+      "max": 768,
+      "step": 64,
+      "group": "advanced"
+    },
+    "steps": {
+      "type": "integer",
+      "default": 25,
+      "min": 10,
+      "max": 50,
+      "group": "advanced"
+    },
+    "cfg_scale": {
+      "type": "number",
+      "default": 7.5,
+      "min": 1,
+      "max": 15,
+      "group": "advanced"
+    },
+    "seed": {
+      "type": "integer",
+      "default": -1,
+      "group": "advanced"
+    },
+    "output_format": {
+      "type": "select",
+      "default": "mp4",
+      "label": "Output Format",
+      "options": ["mp4", "gif", "webm", "frames"],
+      "group": "output"
+    }
+  },
+
+  "pipeline": [
+    {
+      "id": "load_model",
+      "type": "load_model",
+      "config": {"model_type": "sd15"}
+    },
+    {
+      "id": "load_motion_module",
+      "type": "load_extension",
+      "config": {
+        "extension": "animatediff",
+        "motion_module": "mm_sd_v15_v2.ckpt"
+      }
+    },
+    {
+      "id": "build_prompt",
+      "type": "encode_prompt",
+      "config": {
+        "template": "{prompt}, {motion_type} motion, smooth animation, high quality, detailed"
+      }
+    },
+    {
+      "id": "generate",
+      "type": "animate",
+      "config": {
+        "scheduler": "DPM++ 2M Karras"
+      },
+      "inputs": {
+        "frame_count": "frame_count",
+        "motion_scale": "motion_scale",
+        "camera_motion": "camera_motion",
+        "loop": "loop"
+      },
+      "outputs": ["frames"]
+    },
+    {
+      "id": "decode",
+      "type": "decode",
+      "inputs": {"latents": "generate.frames"},
+      "outputs": ["images"]
+    },
+    {
+      "id": "export",
+      "type": "save",
+      "config": {
+        "format": "video"
+      },
+      "inputs": {
+        "images": "decode.images",
+        "fps": "fps",
+        "output_format": "output_format"
+      }
+    }
+  ],
+
+  "presets": {
+    "cinemagraph": {
+      "motion_type": "subtle",
+      "camera_motion": "static",
+      "frame_count": 16,
+      "loop": true,
+      "motion_scale": 0.6,
+      "description": "Subtle looping motion for backgrounds"
+    },
+    "establishing_shot": {
+      "motion_type": "natural",
+      "camera_motion": "pan right",
+      "frame_count": 24,
+      "loop": false,
+      "motion_scale": 1.0,
+      "description": "Slow pan for scene establishment"
+    },
+    "action_clip": {
+      "motion_type": "dynamic",
+      "camera_motion": "tracking",
+      "frame_count": 16,
+      "loop": false,
+      "motion_scale": 1.5,
+      "description": "High energy action sequence"
+    },
+    "timelapse": {
+      "motion_type": "timelapse",
+      "camera_motion": "static",
+      "frame_count": 32,
+      "loop": true,
+      "motion_scale": 1.2,
+      "description": "Fast forward time effect"
+    }
+  },
+
+  "app_adaptations": {
+    "vscode": {
+      "generate_standalone": true,
+      "show_code_preview": true
+    },
+    "davinci": {
+      "timeline_integration": true,
+      "batch_frames": true,
+      "in_point_param": "start_frame",
+      "out_point_param": "end_frame",
+      "notes": "Drop directly onto timeline. Use markers for generation points. Batch generate for multiple clips.",
+      "fusion_compatible": true,
+      "color_page_lut": true
+    },
+    "gimp": {
+      "brush_mode": false,
+      "layer_output": true,
+      "notes": "Export as layer stack for frame-by-frame editing"
+    }
+  },
+
+  "examples": [
+    {
+      "name": "Ocean Sunset Loop",
+      "preview": "examples/ocean_sunset.gif",
+      "parameters": {
+        "prompt": "peaceful ocean sunset, gentle waves, golden light reflecting on water",
+        "motion_type": "subtle",
+        "loop": true
+      }
+    },
+    {
+      "name": "City Night Timelapse",
+      "preview": "examples/city_night.gif",
+      "parameters": {
+        "prompt": "city skyline at night, lights flickering, cars moving below",
+        "motion_type": "timelapse",
+        "camera_motion": "static"
+      }
+    }
+  ]
+}

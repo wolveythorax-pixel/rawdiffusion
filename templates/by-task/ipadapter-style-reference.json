@@ -1,0 +1,211 @@
+{
+  "id": "ipadapter-style-reference",
+  "name": "IP Adapter Style Reference",
+  "version": "1.0.0",
+  "description": "Use a reference image to guide generation style. Create consistent character looks, transfer artistic styles, or match specific aesthetics.",
+  "author": "RawDiffusion",
+  "license": "MIT",
+  "tags": ["ipadapter", "style", "reference", "consistency", "character"],
+  "difficulty": "intermediate",
+  "category": "style-transfer",
+
+  "requirements": {
+    "base_model": {
+      "architecture": "sd15",
+      "recommended": ["dreamshaper_8.safetensors", "realisticVision_v5.safetensors"],
+      "vram_minimum_gb": 6
+    },
+    "extensions": ["ip_adapter"],
+    "ip_adapter_models": {
+      "recommended": [
+        "ip-adapter_sd15.safetensors",
+        "ip-adapter-plus_sd15.safetensors",
+        "ip-adapter-plus-face_sd15.safetensors"
+      ]
+    }
+  },
+
+  "parameters": {
+    "reference_image": {
+      "type": "image",
+      "label": "Style Reference",
+      "description": "Image whose style/subject you want to capture",
+      "group": "input",
+      "required": true
+    },
+    "prompt": {
+      "type": "string",
+      "default": "a portrait in the same style",
+      "label": "Generation Prompt",
+      "description": "Describe what you want to generate",
+      "group": "basic"
+    },
+    "negative_prompt": {
+      "type": "string",
+      "default": "blurry, low quality, distorted",
+      "group": "basic"
+    },
+    "adapter_mode": {
+      "type": "select",
+      "default": "style",
+      "label": "Reference Mode",
+      "options": ["style", "composition", "face", "full"],
+      "description": "What to extract from reference",
+      "group": "basic"
+    },
+    "adapter_strength": {
+      "type": "number",
+      "default": 0.8,
+      "label": "Reference Influence",
+      "description": "How strongly to follow the reference",
+      "min": 0.1,
+      "max": 1.5,
+      "step": 0.05,
+      "group": "basic"
+    },
+    "adapter_model": {
+      "type": "select",
+      "default": "plus",
+      "label": "Adapter Model",
+      "options": ["base", "plus", "plus_face", "full_face"],
+      "description": "plus = better style, plus_face = face focus",
+      "group": "style"
+    },
+    "combine_with_prompt": {
+      "type": "number",
+      "default": 0.5,
+      "label": "Prompt Weight",
+      "description": "Balance between reference and prompt (0 = all reference, 1 = all prompt)",
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.1,
+      "group": "style"
+    },
+    "crop_reference": {
+      "type": "boolean",
+      "default": false,
+      "label": "Auto-crop Reference",
+      "description": "Crop to face/subject automatically",
+      "group": "style"
+    },
+    "width": {
+      "type": "integer",
+      "default": 512,
+      "min": 384,
+      "max": 1024,
+      "step": 64,
+      "group": "advanced"
+    },
+    "height": {
+      "type": "integer",
+      "default": 768,
+      "min": 384,
+      "max": 1024,
+      "step": 64,
+      "group": "advanced"
+    },
+    "steps": {
+      "type": "integer",
+      "default": 30,
+      "min": 10,
+      "max": 80,
+      "group": "advanced"
+    },
+    "cfg_scale": {
+      "type": "number",
+      "default": 7.0,
+      "min": 1,
+      "max": 15,
+      "group": "advanced"
+    },
+    "seed": {
+      "type": "integer",
+      "default": -1,
+      "group": "advanced"
+    }
+  },
+
+  "pipeline": [
+    {"id": "load_model", "type": "load_model", "config": {"model_type": "sd15"}},
+    {
+      "id": "load_ip_adapter",
+      "type": "load_ipadapter",
+      "inputs": {"model": "adapter_model"}
+    },
+    {
+      "id": "prepare_reference",
+      "type": "preprocess",
+      "config": {"operation": "prepare_ip_adapter_input"},
+      "inputs": {
+        "image": "reference_image",
+        "crop": "crop_reference",
+        "mode": "adapter_mode"
+      },
+      "outputs": ["processed_reference"]
+    },
+    {
+      "id": "encode_reference",
+      "type": "encode_prompt",
+      "config": {"mode": "ip_adapter"},
+      "inputs": {
+        "reference": "prepare_reference.processed_reference",
+        "strength": "adapter_strength"
+      }
+    },
+    {
+      "id": "generate",
+      "type": "generate",
+      "config": {"scheduler": "DPM++ 2M Karras"},
+      "inputs": {
+        "ip_adapter_embeds": "encode_reference.embeds",
+        "prompt_weight": "combine_with_prompt"
+      }
+    },
+    {"id": "decode", "type": "decode"},
+    {"id": "save", "type": "save"}
+  ],
+
+  "presets": {
+    "style_transfer": {
+      "adapter_mode": "style",
+      "adapter_model": "plus",
+      "adapter_strength": 0.9,
+      "combine_with_prompt": 0.3,
+      "description": "Transfer artistic style from reference"
+    },
+    "character_consistency": {
+      "adapter_mode": "face",
+      "adapter_model": "plus_face",
+      "adapter_strength": 0.85,
+      "combine_with_prompt": 0.5,
+      "crop_reference": true,
+      "description": "Keep same face across images"
+    },
+    "composition_guide": {
+      "adapter_mode": "composition",
+      "adapter_model": "base",
+      "adapter_strength": 0.6,
+      "combine_with_prompt": 0.7,
+      "description": "Use reference for layout/composition only"
+    }
+  },
+
+  "app_adaptations": {
+    "vscode": {"generate_standalone": true},
+    "davinci": {
+      "timeline_integration": true,
+      "notes": "Use still frame as reference for consistent video generation"
+    },
+    "gimp": {
+      "layer_output": true,
+      "notes": "Use existing layer as style reference"
+    }
+  },
+
+  "tips": [
+    "Higher strength = more faithful to reference",
+    "Use plus_face model for character consistency",
+    "Combine with ControlNet for pose + style",
+    "Multiple reference images can be averaged"
+  ]
+}

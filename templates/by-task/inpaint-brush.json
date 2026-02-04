@@ -1,0 +1,269 @@
+{
+  "id": "inpaint-brush-mode",
+  "name": "Brush Inpainting",
+  "version": "1.0.0",
+  "description": "Paint over areas to regenerate them. Perfect for object removal, replacement, or enhancement. Designed for GIMP brush workflow integration.",
+  "author": "RawDiffusion",
+  "license": "MIT",
+  "tags": ["inpaint", "brush", "edit", "remove", "replace", "retouch"],
+  "difficulty": "beginner",
+  "category": "inpaint",
+
+  "requirements": {
+    "base_model": {
+      "architecture": "sd15",
+      "recommended": ["dreamshaper_8.safetensors", "realisticVision_v5.safetensors"],
+      "inpaint_model": "sd-v1-5-inpainting.safetensors",
+      "vram_minimum_gb": 4
+    }
+  },
+
+  "parameters": {
+    "image": {
+      "type": "image",
+      "label": "Source Image",
+      "description": "The image to edit",
+      "group": "input",
+      "required": true
+    },
+    "mask": {
+      "type": "image",
+      "label": "Mask",
+      "description": "White = areas to regenerate, Black = keep original",
+      "group": "input",
+      "required": true
+    },
+    "prompt": {
+      "type": "string",
+      "default": "",
+      "label": "What to Generate",
+      "description": "Describe what should appear in the masked area. Leave empty to just remove/fill.",
+      "group": "basic"
+    },
+    "negative_prompt": {
+      "type": "string",
+      "default": "blurry, low quality, artifacts, seams",
+      "group": "basic"
+    },
+    "mode": {
+      "type": "select",
+      "default": "replace",
+      "label": "Inpaint Mode",
+      "options": ["replace", "remove", "enhance", "extend"],
+      "group": "basic"
+    },
+    "denoise_strength": {
+      "type": "number",
+      "default": 0.75,
+      "label": "Strength",
+      "description": "How much to change. Higher = more creative, lower = preserve more",
+      "min": 0.1,
+      "max": 1.0,
+      "step": 0.05,
+      "group": "basic"
+    },
+    "mask_blur": {
+      "type": "integer",
+      "default": 4,
+      "label": "Mask Blur",
+      "description": "Feather the mask edges for smoother blending",
+      "min": 0,
+      "max": 32,
+      "step": 1,
+      "group": "advanced"
+    },
+    "mask_expand": {
+      "type": "integer",
+      "default": 0,
+      "label": "Mask Expand",
+      "description": "Grow the mask by pixels",
+      "min": -32,
+      "max": 32,
+      "step": 1,
+      "group": "advanced"
+    },
+    "inpaint_full_res": {
+      "type": "boolean",
+      "default": true,
+      "label": "Full Resolution",
+      "description": "Process at full image resolution (slower but better)",
+      "group": "advanced"
+    },
+    "inpaint_padding": {
+      "type": "integer",
+      "default": 32,
+      "label": "Context Padding",
+      "description": "Extra context around masked area",
+      "min": 0,
+      "max": 256,
+      "step": 8,
+      "group": "advanced"
+    },
+    "steps": {
+      "type": "integer",
+      "default": 30,
+      "min": 10,
+      "max": 80,
+      "group": "advanced"
+    },
+    "cfg_scale": {
+      "type": "number",
+      "default": 7.0,
+      "min": 1,
+      "max": 15,
+      "group": "advanced"
+    },
+    "seed": {
+      "type": "integer",
+      "default": -1,
+      "group": "advanced"
+    }
+  },
+
+  "pipeline": [
+    {
+      "id": "load_model",
+      "type": "load_model",
+      "config": {
+        "model_type": "sd15_inpaint",
+        "use_inpaint_model": true
+      }
+    },
+    {
+      "id": "prepare_mask",
+      "type": "preprocess",
+      "config": {
+        "operation": "mask_prepare"
+      },
+      "inputs": {
+        "mask": "mask",
+        "blur": "mask_blur",
+        "expand": "mask_expand"
+      },
+      "outputs": ["processed_mask"]
+    },
+    {
+      "id": "encode_image",
+      "type": "encode_prompt",
+      "inputs": {
+        "image": "image",
+        "mask": "prepare_mask.processed_mask"
+      }
+    },
+    {
+      "id": "generate",
+      "type": "generate",
+      "config": {
+        "mode": "inpaint",
+        "scheduler": "DPM++ 2M Karras"
+      },
+      "inputs": {
+        "prompt": "prompt",
+        "negative_prompt": "negative_prompt",
+        "strength": "denoise_strength",
+        "full_res": "inpaint_full_res",
+        "padding": "inpaint_padding"
+      },
+      "outputs": ["latents"]
+    },
+    {
+      "id": "decode",
+      "type": "decode"
+    },
+    {
+      "id": "composite",
+      "type": "composite",
+      "config": {
+        "operation": "blend_with_original"
+      },
+      "inputs": {
+        "generated": "decode.image",
+        "original": "image",
+        "mask": "prepare_mask.processed_mask"
+      },
+      "outputs": ["final_image"]
+    },
+    {
+      "id": "save",
+      "type": "save"
+    }
+  ],
+
+  "presets": {
+    "object_removal": {
+      "mode": "remove",
+      "prompt": "",
+      "denoise_strength": 1.0,
+      "mask_blur": 8,
+      "description": "Remove unwanted objects, fill with background"
+    },
+    "face_fix": {
+      "mode": "enhance",
+      "denoise_strength": 0.4,
+      "mask_blur": 4,
+      "prompt": "detailed face, sharp features",
+      "description": "Fix distorted faces while preserving likeness"
+    },
+    "object_replace": {
+      "mode": "replace",
+      "denoise_strength": 0.85,
+      "mask_blur": 4,
+      "description": "Replace object with something new"
+    },
+    "background_extend": {
+      "mode": "extend",
+      "denoise_strength": 1.0,
+      "mask_blur": 16,
+      "prompt": "seamless background continuation",
+      "description": "Extend image beyond its borders"
+    }
+  },
+
+  "app_adaptations": {
+    "vscode": {
+      "generate_standalone": true,
+      "notes": "Load image, draw mask in preview, generate"
+    },
+    "davinci": {
+      "timeline_integration": true,
+      "batch_frames": true,
+      "notes": "Use power windows as masks for video inpainting"
+    },
+    "gimp": {
+      "brush_mode": true,
+      "layer_output": true,
+      "selection_as_mask": true,
+      "notes": "Paint mask directly in GIMP. Selection auto-converts to mask. Output as new layer for non-destructive editing.",
+      "brush_settings": {
+        "default_size": 50,
+        "hardness": 0.8,
+        "opacity": 1.0
+      },
+      "keyboard_shortcuts": {
+        "toggle_preview": "P",
+        "generate": "G",
+        "undo_mask": "Ctrl+Z"
+      }
+    }
+  },
+
+  "examples": [
+    {
+      "name": "Remove Person",
+      "preview": "examples/remove_person.png",
+      "parameters": {
+        "mode": "remove",
+        "denoise_strength": 1.0
+      }
+    },
+    {
+      "name": "Replace Sky",
+      "preview": "examples/replace_sky.png",
+      "parameters": {
+        "mode": "replace",
+        "prompt": "dramatic sunset sky, orange and purple clouds",
+        "denoise_strength": 0.9
+      }
+    }
+  ]
+}

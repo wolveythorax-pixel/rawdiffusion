@@ -1,0 +1,221 @@
+{
+  "id": "upscale-enhance",
+  "name": "AI Upscale & Enhance",
+  "version": "1.0.0",
+  "description": "Upscale images 2-4x with AI enhancement. Adds detail while preserving the original look. Great for web images, old photos, or generation cleanup.",
+  "author": "RawDiffusion",
+  "license": "MIT",
+  "tags": ["upscale", "enhance", "super-resolution", "detail", "4k"],
+  "difficulty": "beginner",
+  "category": "upscale",
+
+  "requirements": {
+    "base_model": {
+      "architecture": "sd15",
+      "recommended": ["dreamshaper_8.safetensors"],
+      "vram_minimum_gb": 6
+    },
+    "upscale_model": {
+      "recommended": ["RealESRGAN_x4plus.pth", "4x-UltraSharp.pth"],
+      "type": "esrgan"
+    }
+  },
+
+  "parameters": {
+    "image": {
+      "type": "image",
+      "label": "Input Image",
+      "group": "input",
+      "required": true
+    },
+    "scale": {
+      "type": "select",
+      "default": "2x",
+      "label": "Scale Factor",
+      "options": ["2x", "4x"],
+      "group": "basic"
+    },
+    "method": {
+      "type": "select",
+      "default": "esrgan_then_refine",
+      "label": "Method",
+      "options": ["esrgan_only", "esrgan_then_refine", "tiled_diffusion", "ultimate_sd_upscale"],
+      "group": "basic"
+    },
+    "denoise_strength": {
+      "type": "number",
+      "default": 0.3,
+      "label": "Refinement Strength",
+      "description": "How much to regenerate (0 = pure upscale, 1 = full regen)",
+      "min": 0.0,
+      "max": 0.7,
+      "step": 0.05,
+      "group": "basic",
+      "visible_if": {"method": ["esrgan_then_refine", "tiled_diffusion", "ultimate_sd_upscale"]}
+    },
+    "prompt": {
+      "type": "string",
+      "default": "",
+      "label": "Enhancement Prompt",
+      "description": "Describe what's in the image for better enhancement",
+      "group": "basic",
+      "visible_if": {"method": ["esrgan_then_refine", "tiled_diffusion"]}
+    },
+    "upscale_model": {
+      "type": "select",
+      "default": "RealESRGAN_x4plus",
+      "label": "Upscale Model",
+      "options": ["RealESRGAN_x4plus", "RealESRGAN_x4plus_anime", "4x-UltraSharp", "4x-AnimeSharp"],
+      "group": "advanced"
+    },
+    "tile_size": {
+      "type": "integer",
+      "default": 512,
+      "label": "Tile Size",
+      "description": "Larger = better quality but more VRAM",
+      "min": 256,
+      "max": 1024,
+      "step": 64,
+      "group": "advanced",
+      "visible_if": {"method": ["tiled_diffusion", "ultimate_sd_upscale"]}
+    },
+    "tile_overlap": {
+      "type": "integer",
+      "default": 48,
+      "label": "Tile Overlap",
+      "description": "Overlap between tiles for seamless blending",
+      "min": 16,
+      "max": 128,
+      "step": 8,
+      "group": "advanced"
+    },
+    "sharpness": {
+      "type": "number",
+      "default": 0.0,
+      "label": "Sharpness",
+      "min": -1.0,
+      "max": 1.0,
+      "step": 0.1,
+      "group": "advanced"
+    },
+    "face_enhance": {
+      "type": "boolean",
+      "default": false,
+      "label": "Enhance Faces",
+      "description": "Use GFPGAN/CodeFormer on detected faces",
+      "group": "advanced"
+    },
+    "steps": {
+      "type": "integer",
+      "default": 20,
+      "min": 10,
+      "max": 50,
+      "group": "advanced"
+    },
+    "cfg_scale": {
+      "type": "number",
+      "default": 7.0,
+      "min": 1,
+      "max": 15,
+      "group": "advanced"
+    },
+    "seed": {
+      "type": "integer",
+      "default": -1,
+      "group": "advanced"
+    }
+  },
+
+  "pipeline": [
+    {
+      "id": "upscale_esrgan",
+      "type": "upscale",
+      "config": {"method": "esrgan"},
+      "inputs": {
+        "image": "image",
+        "model": "upscale_model",
+        "scale": "scale"
+      },
+      "outputs": ["upscaled_image"]
+    },
+    {
+      "id": "load_model",
+      "type": "load_model",
+      "config": {"model_type": "sd15"},
+      "skip_if": {"method": "esrgan_only"}
+    },
+    {
+      "id": "refine",
+      "type": "generate",
+      "config": {
+        "mode": "img2img",
+        "tiled": true
+      },
+      "inputs": {
+        "image": "upscale_esrgan.upscaled_image",
+        "strength": "denoise_strength",
+        "tile_size": "tile_size",
+        "tile_overlap": "tile_overlap"
+      },
+      "outputs": ["refined_image"],
+      "skip_if": {"method": "esrgan_only"}
+    },
+    {
+      "id": "face_restore",
+      "type": "postprocess",
+      "config": {"operation": "face_enhance"},
+      "skip_if": {"face_enhance": false}
+    },
+    {
+      "id": "sharpen",
+      "type": "postprocess",
+      "config": {"operation": "sharpen"},
+      "inputs": {"amount": "sharpness"},
+      "skip_if": {"sharpness": 0.0}
+    },
+    {"id": "save", "type": "save"}
+  ],
+
+  "presets": {
+    "quick_2x": {
+      "scale": "2x",
+      "method": "esrgan_only",
+      "description": "Fast 2x upscale, no refinement"
+    },
+    "quality_4x": {
+      "scale": "4x",
+      "method": "esrgan_then_refine",
+      "denoise_strength": 0.25,
+      "face_enhance": true,
+      "description": "High quality 4x with face fix"
+    },
+    "photo_restore": {
+      "scale": "4x",
+      "method": "esrgan_then_refine",
+      "denoise_strength": 0.4,
+      "face_enhance": true,
+      "upscale_model": "RealESRGAN_x4plus",
+      "description": "Old photo restoration"
+    },
+    "anime_upscale": {
+      "scale": "4x",
+      "method": "esrgan_only",
+      "upscale_model": "RealESRGAN_x4plus_anime",
+      "sharpness": 0.3,
+      "description": "Anime/illustration upscale"
+    }
+  },
+
+  "app_adaptations": {
+    "vscode": {"generate_standalone": true},
+    "davinci": {
+      "timeline_integration": true,
+      "batch_frames": true,
+      "notes": "Batch upscale for video frame enhancement. Use with Super Scale for best results."
+    },
+    "gimp": {
+      "layer_output": true,
+      "notes": "Upscale selection or entire image. Result as new layer."
+    }
+  }
+}

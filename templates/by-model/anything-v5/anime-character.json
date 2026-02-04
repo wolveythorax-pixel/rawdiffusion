@@ -1,0 +1,177 @@
+{
+  "id": "anything-v5-anime-character",
+  "name": "Anime Character Generator",
+  "version": "1.0.0",
+  "description": "High-quality anime character generation. Optimized for AnythingV5 and similar anime-focused models like DarkSushiMix.",
+  "author": "RawDiffusion",
+  "license": "MIT",
+  "tags": ["anime", "manga", "character", "waifu", "illustration", "sd15"],
+  "difficulty": "beginner",
+  "category": "txt2img",
+
+  "requirements": {
+    "base_model": {
+      "architecture": "sd15",
+      "recommended": ["anythingV5_v5.safetensors", "darkSushiMix_225D.safetensors"],
+      "vram_minimum_gb": 4
+    }
+  },
+
+  "parameters": {
+    "prompt": {
+      "type": "string",
+      "default": "1girl, beautiful anime girl",
+      "label": "Character Tags",
+      "description": "Use anime tags: 1girl, 1boy, solo, etc.",
+      "group": "basic"
+    },
+    "negative_prompt": {
+      "type": "string",
+      "default": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, bad feet",
+      "group": "basic"
+    },
+    "character_type": {
+      "type": "select",
+      "default": "schoolgirl",
+      "label": "Character Type",
+      "options": ["schoolgirl", "maid", "warrior", "magical girl", "idol", "casual", "fantasy", "sci-fi", "traditional"],
+      "group": "basic"
+    },
+    "hair_color": {
+      "type": "select",
+      "default": "any",
+      "label": "Hair Color",
+      "options": ["any", "black hair", "brown hair", "blonde hair", "red hair", "blue hair", "pink hair", "white hair", "purple hair", "green hair", "multicolored hair"],
+      "group": "style"
+    },
+    "hair_style": {
+      "type": "select",
+      "default": "any",
+      "label": "Hair Style",
+      "options": ["any", "long hair", "short hair", "twintails", "ponytail", "braids", "bob cut", "hime cut", "messy hair"],
+      "group": "style"
+    },
+    "eye_color": {
+      "type": "select",
+      "default": "any",
+      "label": "Eye Color",
+      "options": ["any", "blue eyes", "red eyes", "green eyes", "brown eyes", "purple eyes", "yellow eyes", "heterochromia"],
+      "group": "style"
+    },
+    "expression": {
+      "type": "select",
+      "default": "smile",
+      "label": "Expression",
+      "options": ["smile", "serious", "angry", "surprised", "shy", "happy", "sad", "smug", "blush"],
+      "group": "style"
+    },
+    "pose": {
+      "type": "select",
+      "default": "standing",
+      "label": "Pose",
+      "options": ["standing", "sitting", "walking", "running", "fighting", "portrait", "full body", "upper body"],
+      "group": "style"
+    },
+    "background": {
+      "type": "select",
+      "default": "simple",
+      "label": "Background",
+      "options": ["simple", "white background", "gradient", "outdoors", "indoors", "school", "city", "nature", "fantasy"],
+      "group": "style"
+    },
+    "quality_tags": {
+      "type": "select",
+      "default": "masterpiece",
+      "label": "Quality Boost",
+      "options": ["none", "masterpiece", "masterpiece + best quality", "ultra detailed"],
+      "group": "advanced"
+    },
+    "width": {
+      "type": "integer",
+      "default": 512,
+      "min": 384,
+      "max": 768,
+      "step": 64,
+      "group": "advanced"
+    },
+    "height": {
+      "type": "integer",
+      "default": 768,
+      "min": 384,
+      "max": 1024,
+      "step": 64,
+      "group": "advanced"
+    },
+    "steps": {
+      "type": "integer",
+      "default": 28,
+      "min": 10,
+      "max": 60,
+      "group": "advanced"
+    },
+    "cfg_scale": {
+      "type": "number",
+      "default": 7.0,
+      "min": 1,
+      "max": 15,
+      "group": "advanced"
+    },
+    "clip_skip": {
+      "type": "integer",
+      "default": 2,
+      "label": "CLIP Skip",
+      "description": "2 recommended for anime models",
+      "min": 1,
+      "max": 4,
+      "group": "advanced"
+    },
+    "seed": {
+      "type": "integer",
+      "default": -1,
+      "group": "advanced"
+    }
+  },
+
+  "pipeline": [
+    {"id": "load_model", "type": "load_model", "config": {"model_type": "sd15", "clip_skip": 2}},
+    {
+      "id": "build_prompt",
+      "type": "encode_prompt",
+      "config": {
+        "template": "{quality_tags}, {prompt}, {character_type}, {hair_color}, {hair_style}, {eye_color}, {expression}, {pose}, {background}, detailed, anime style"
+      }
+    },
+    {"id": "generate", "type": "generate", "config": {"scheduler": "Euler a"}},
+    {"id": "decode", "type": "decode"},
+    {"id": "save", "type": "save"}
+  ],
+
+  "presets": {
+    "cute_schoolgirl": {
+      "character_type": "schoolgirl",
+      "hair_color": "brown hair",
+      "hair_style": "twintails",
+      "expression": "smile",
+      "background": "school"
+    },
+    "battle_maid": {
+      "character_type": "maid",
+      "hair_color": "white hair",
+      "expression": "serious",
+      "pose": "fighting",
+      "background": "fantasy"
+    },
+    "magical_girl": {
+      "character_type": "magical girl",
+      "hair_color": "pink hair",
+      "expression": "happy",
+      "pose": "full body",
+      "background": "gradient"
+    }
+  },
+
+  "app_adaptations": {
+    "vscode": {"generate_standalone": true},
+    "gimp": {"layer_output": true}
+  }
+}

@@ -1,0 +1,197 @@
+{
+  "id": "juggernaut-xl-lightning",
+  "name": "JuggernautXL Lightning (4-6 steps)",
+  "version": "1.0.0",
+  "description": "Ultra-fast generation using JuggernautXL Lightning. 4-6 steps for near-instant results. Perfect for rapid iteration and batch generation.",
+  "author": "RawDiffusion",
+  "license": "MIT",
+  "tags": ["fast", "lightning", "lcm", "rapid", "iteration", "sdxl"],
+  "difficulty": "beginner",
+  "category": "txt2img",
+  "source": {
+    "type": "comfyui",
+    "url": "https://civitai.com/models/325730/juggernaut-xl-lightning-simple-workflow"
+  },
+
+  "requirements": {
+    "base_model": {
+      "architecture": "sdxl",
+      "recommended": [
+        "juggernautXL_v9Rdphoto2Lightning.safetensors",
+        "juggernautXL_v9.safetensors"
+      ],
+      "vram_minimum_gb": 8
+    },
+    "loras": [
+      {
+        "name": "add-detail-xl.safetensors",
+        "url": "https://civitai.com/models/122359",
+        "required": false,
+        "default_weight": 0.5
+      }
+    ]
+  },
+
+  "parameters": {
+    "prompt": {
+      "type": "string",
+      "default": "professional photograph of a person, natural lighting, sharp focus",
+      "label": "Prompt",
+      "description": "Keep prompts simple for Lightning models - they're very responsive",
+      "group": "basic"
+    },
+    "negative_prompt": {
+      "type": "string",
+      "default": "",
+      "label": "Negative Prompt",
+      "description": "Start empty, add only if needed. Lightning models need minimal negative.",
+      "group": "basic"
+    },
+    "steps": {
+      "type": "integer",
+      "default": 4,
+      "label": "Steps",
+      "description": "4-6 recommended for Lightning. More steps won't improve quality.",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "group": "basic"
+    },
+    "cfg_scale": {
+      "type": "number",
+      "default": 1.5,
+      "label": "CFG Scale",
+      "description": "Keep LOW for Lightning (1-2). Higher values cause artifacts.",
+      "min": 1.0,
+      "max": 3.0,
+      "step": 0.1,
+      "group": "basic"
+    },
+    "sampler": {
+      "type": "select",
+      "default": "dpm++ sde",
+      "label": "Sampler",
+      "options": ["dpm++ sde", "euler", "euler a", "dpm++ 2m"],
+      "group": "basic"
+    },
+    "use_detail_lora": {
+      "type": "boolean",
+      "default": false,
+      "label": "Add Detail LoRA",
+      "description": "Adds fine details (slightly slower)",
+      "group": "style"
+    },
+    "detail_strength": {
+      "type": "number",
+      "default": 0.5,
+      "min": 0.1,
+      "max": 1.0,
+      "step": 0.1,
+      "group": "style",
+      "visible_if": {"use_detail_lora": true}
+    },
+    "width": {
+      "type": "integer",
+      "default": 1024,
+      "min": 512,
+      "max": 1536,
+      "step": 64,
+      "group": "advanced"
+    },
+    "height": {
+      "type": "integer",
+      "default": 1024,
+      "min": 512,
+      "max": 1536,
+      "step": 64,
+      "group": "advanced"
+    },
+    "batch_size": {
+      "type": "integer",
+      "default": 1,
+      "label": "Batch Size",
+      "description": "Generate multiple at once (VRAM dependent)",
+      "min": 1,
+      "max": 8,
+      "group": "advanced"
+    },
+    "seed": {
+      "type": "integer",
+      "default": -1,
+      "group": "advanced"
+    }
+  },
+
+  "pipeline": [
+    {
+      "id": "load_model",
+      "type": "load_model",
+      "config": {
+        "model_type": "sdxl",
+        "scheduler": "DPM++ SDE",
+        "scheduler_config": {
+          "use_karras_sigmas": false
+        }
+      }
+    },
+    {
+      "id": "load_detail_lora",
+      "type": "load_lora",
+      "config": {"name": "add-detail-xl.safetensors"},
+      "inputs": {"strength": "detail_strength"},
+      "skip_if": {"use_detail_lora": false}
+    },
+    {
+      "id": "generate",
+      "type": "generate",
+      "config": {
+        "low_cfg_mode": true
+      },
+      "inputs": {
+        "sampler": "sampler",
+        "batch_size": "batch_size"
+      }
+    },
+    {"id": "decode", "type": "decode"},
+    {"id": "save", "type": "save"}
+  ],
+
+  "presets": {
+    "instant_draft": {
+      "steps": 4,
+      "cfg_scale": 1.0,
+      "use_detail_lora": false,
+      "description": "Fastest possible - for composition tests"
+    },
+    "balanced": {
+      "steps": 6,
+      "cfg_scale": 1.5,
+      "use_detail_lora": false,
+      "description": "Good balance of speed and quality"
+    },
+    "detailed": {
+      "steps": 6,
+      "cfg_scale": 2.0,
+      "use_detail_lora": true,
+      "detail_strength": 0.5,
+      "description": "Extra detail, slightly slower"
+    }
+  },
+
+  "app_adaptations": {
+    "vscode": {"generate_standalone": true},
+    "davinci": {
+      "timeline_integration": true,
+      "batch_frames": true,
+      "notes": "Excellent for rapid storyboard generation"
+    },
+    "gimp": {"layer_output": true}
+  },
+
+  "tips": [
+    "Keep CFG between 1-2, higher causes oversaturation",
+    "Simple prompts work better than complex ones",
+    "No negative prompt needed in most cases",
+    "Great for batch generation - test many seeds quickly"
+  ]
+}

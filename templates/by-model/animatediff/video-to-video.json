@@ -1,0 +1,258 @@
+{
+  "id": "animatediff-video-to-video",
+  "name": "Video to Video Style Transfer",
+  "version": "1.0.0",
+  "description": "Transform existing videos into new styles using AnimateDiff + ControlNet. Turn real footage into animation, change art styles, or apply consistent filters.",
+  "author": "RawDiffusion",
+  "license": "MIT",
+  "tags": ["video", "vid2vid", "style", "animation", "controlnet", "animatediff"],
+  "difficulty": "intermediate",
+  "category": "video",
+  "source": {
+    "type": "comfyui",
+    "url": "https://openart.ai/workflows/futurebenji/animatediff-flicker-free-animation-video-workflow/A9ZE35kkDazgWGXhnyXh"
+  },
+
+  "requirements": {
+    "base_model": {
+      "architecture": "sd15",
+      "recommended": [
+        "realisticVisionV60B1_V51VAE.safetensors",
+        "dreamshaper_8.safetensors",
+        "toonyou_beta6.safetensors"
+      ],
+      "vram_minimum_gb": 10
+    },
+    "extensions": ["animatediff", "controlnet_aux", "video_helper_suite"],
+    "motion_module": {
+      "recommended": ["mm_sd_v15_v2.ckpt", "animatediff_lightning_4step.safetensors"]
+    },
+    "controlnets": [
+      {
+        "type": "lineart",
+        "model": "lllyasviel/control_v11p_sd15_lineart",
+        "required": true
+      },
+      {
+        "type": "softedge",
+        "model": "lllyasviel/control_v11p_sd15_softedge",
+        "required": false
+      }
+    ]
+  },
+
+  "parameters": {
+    "video": {
+      "type": "video",
+      "label": "Source Video",
+      "description": "The video to transform",
+      "group": "input",
+      "required": true
+    },
+    "prompt": {
+      "type": "string",
+      "default": "anime style, vibrant colors, detailed",
+      "label": "Style Description",
+      "group": "basic"
+    },
+    "negative_prompt": {
+      "type": "string",
+      "default": "blurry, low quality, flickering, inconsistent, artifacts",
+      "group": "basic"
+    },
+    "style_preset": {
+      "type": "select",
+      "default": "anime",
+      "label": "Style Preset",
+      "options": ["anime", "realistic", "oil_painting", "watercolor", "comic", "3d_render", "custom"],
+      "group": "basic"
+    },
+    "denoise_strength": {
+      "type": "number",
+      "default": 0.6,
+      "label": "Style Strength",
+      "description": "How much to change (0.4-0.7 recommended for coherence)",
+      "min": 0.3,
+      "max": 1.0,
+      "step": 0.05,
+      "group": "basic"
+    },
+    "controlnet_strength": {
+      "type": "number",
+      "default": 0.8,
+      "label": "Motion Preservation",
+      "description": "How closely to follow original motion",
+      "min": 0.3,
+      "max": 1.2,
+      "step": 0.05,
+      "group": "basic"
+    },
+    "use_ip_adapter": {
+      "type": "boolean",
+      "default": true,
+      "label": "IP Adapter Style",
+      "description": "Use reference image for consistent style",
+      "group": "style"
+    },
+    "style_reference": {
+      "type": "image",
+      "label": "Style Reference Image",
+      "description": "Reference image for style consistency",
+      "group": "style",
+      "visible_if": {"use_ip_adapter": true}
+    },
+    "frame_batch_size": {
+      "type": "integer",
+      "default": 16,
+      "label": "Frames per Batch",
+      "description": "Process this many frames at once",
+      "min": 8,
+      "max": 32,
+      "step": 4,
+      "group": "advanced"
+    },
+    "overlap_frames": {
+      "type": "integer",
+      "default": 4,
+      "label": "Overlap Frames",
+      "description": "Overlap between batches for smooth transitions",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "group": "advanced"
+    },
+    "output_fps": {
+      "type": "select",
+      "default": "match_source",
+      "label": "Output FPS",
+      "options": ["match_source", "12", "16", "24", "30"],
+      "group": "advanced"
+    },
+    "steps": {
+      "type": "integer",
+      "default": 20,
+      "min": 10,
+      "max": 40,
+      "group": "advanced"
+    },
+    "cfg_scale": {
+      "type": "number",
+      "default": 7.0,
+      "min": 1,
+      "max": 12,
+      "group": "advanced"
+    },
+    "seed": {
+      "type": "integer",
+      "default": -1,
+      "description": "Fixed seed recommended for consistency",
+      "group": "advanced"
+    }
+  },
+
+  "pipeline": [
+    {
+      "id": "load_video",
+      "type": "preprocess",
+      "config": {"operation": "load_video"},
+      "inputs": {"video": "video"},
+      "outputs": ["frames", "fps", "frame_count"]
+    },
+    {"id": "load_model", "type": "load_model", "config": {"model_type": "sd15"}},
+    {
+      "id": "load_animatediff",
+      "type": "load_extension",
+      "config": {"extension": "animatediff"}
+    },
+    {
+      "id": "load_controlnet",
+      "type": "load_controlnet",
+      "config": {"type": "lineart"}
+    },
+    {
+      "id": "load_ip_adapter",
+      "type": "load_ipadapter",
+      "skip_if": {"use_ip_adapter": false}
+    },
+    {
+      "id": "extract_lineart",
+      "type": "preprocess",
+      "config": {"preprocessor": "lineart_anime"},
+      "inputs": {"frames": "load_video.frames"},
+      "outputs": ["control_frames"]
+    },
+    {
+      "id": "batch_process",
+      "type": "animate",
+      "config": {
+        "mode": "video_to_video",
+        "scheduler": "DPM++ 2M Karras",
+        "sliding_window": true
+      },
+      "inputs": {
+        "source_frames": "load_video.frames",
+        "control_frames": "extract_lineart.control_frames",
+        "batch_size": "frame_batch_size",
+        "overlap": "overlap_frames",
+        "strength": "denoise_strength"
+      },
+      "outputs": ["generated_frames"]
+    },
+    {
+      "id": "encode_video",
+      "type": "save",
+      "config": {"format": "video"},
+      "inputs": {
+        "frames": "batch_process.generated_frames",
+        "fps": "output_fps"
+      }
+    }
+  ],
+
+  "presets": {
+    "anime_conversion": {
+      "style_preset": "anime",
+      "denoise_strength": 0.65,
+      "controlnet_strength": 0.8,
+      "prompt": "anime style, cel shading, vibrant colors, detailed linework",
+      "description": "Convert real footage to anime"
+    },
+    "subtle_stylization": {
+      "style_preset": "custom",
+      "denoise_strength": 0.4,
+      "controlnet_strength": 1.0,
+      "description": "Light style change, preserve most detail"
+    },
+    "artistic_painting": {
+      "style_preset": "oil_painting",
+      "denoise_strength": 0.75,
+      "controlnet_strength": 0.6,
+      "prompt": "oil painting, impressionist style, visible brushstrokes, artistic",
+      "description": "Turn video into living painting"
+    }
+  },
+
+  "app_adaptations": {
+    "vscode": {"generate_standalone": true},
+    "davinci": {
+      "timeline_integration": true,
+      "batch_frames": true,
+      "in_point_param": "start_frame",
+      "out_point_param": "end_frame",
+      "notes": "Select clip range for processing. Uses timeline markers for batch points. Output to Media Pool.",
+      "color_page_lut": true
+    },
+    "gimp": {
+      "layer_output": true,
+      "notes": "Export frames as layer stack for frame-by-frame refinement"
+    }
+  },
+
+  "tips": [
+    "Use fixed seed for temporal consistency",
+    "Process videos at 512x512 (AnimateDiff training resolution)",
+    "Higher ControlNet strength = more faithful to original motion",
+    "IP Adapter helps maintain consistent style across frames",
+    "For long videos, process in chunks with overlap"
+  ]
+}

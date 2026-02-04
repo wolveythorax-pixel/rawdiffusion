@@ -1,0 +1,266 @@
+{
+  "id": "juggernaut-photorealistic-portrait",
+  "name": "Photorealistic Portrait",
+  "version": "1.0.0",
+  "description": "High-quality photorealistic portraits optimized for JuggernautXL. Best for headshots, fashion, and character reference images.",
+  "author": "RawDiffusion",
+  "license": "MIT",
+  "tags": ["portrait", "photorealistic", "headshot", "fashion", "sdxl"],
+  "difficulty": "beginner",
+  "category": "txt2img",
+
+  "requirements": {
+    "base_model": {
+      "architecture": "sdxl",
+      "recommended": [
+        "juggernautXL_v9.safetensors",
+        "juggernautXL_v8.safetensors",
+        "realvisxl_v5.safetensors"
+      ],
+      "vram_minimum_gb": 8
+    },
+    "loras": [],
+    "controlnets": [],
+    "extensions": []
+  },
+
+  "parameters": {
+    "prompt": {
+      "type": "string",
+      "default": "portrait of a person, professional photography, soft lighting, shallow depth of field",
+      "label": "Prompt",
+      "description": "Describe the person and style you want",
+      "group": "basic"
+    },
+    "negative_prompt": {
+      "type": "string",
+      "default": "deformed, ugly, blurry, low quality, oversaturated, cartoon, anime, illustration, painting, drawing, art, sketch",
+      "label": "Negative Prompt",
+      "description": "What to avoid in the image",
+      "group": "basic"
+    },
+    "subject_gender": {
+      "type": "select",
+      "default": "woman",
+      "label": "Subject",
+      "options": ["woman", "man", "person", "child", "elderly person"],
+      "group": "basic"
+    },
+    "age_range": {
+      "type": "select",
+      "default": "young adult",
+      "label": "Age Range",
+      "options": ["child", "teenager", "young adult", "middle aged", "elderly"],
+      "group": "basic"
+    },
+    "ethnicity": {
+      "type": "select",
+      "default": "any",
+      "label": "Ethnicity",
+      "options": ["any", "caucasian", "african", "asian", "latin", "middle eastern", "south asian", "mixed"],
+      "group": "basic"
+    },
+    "lighting": {
+      "type": "select",
+      "default": "soft studio",
+      "label": "Lighting Style",
+      "options": ["soft studio", "natural window", "golden hour", "dramatic", "rim light", "high key", "low key"],
+      "group": "style"
+    },
+    "background": {
+      "type": "select",
+      "default": "blurred",
+      "label": "Background",
+      "options": ["blurred", "studio backdrop", "outdoor", "office", "urban", "nature", "solid color"],
+      "group": "style"
+    },
+    "framing": {
+      "type": "select",
+      "default": "headshot",
+      "label": "Framing",
+      "options": ["extreme closeup", "headshot", "shoulders up", "half body", "three quarter"],
+      "group": "style"
+    },
+    "expression": {
+      "type": "select",
+      "default": "neutral",
+      "label": "Expression",
+      "options": ["neutral", "smile", "serious", "confident", "thoughtful", "happy", "determined"],
+      "group": "style"
+    },
+    "width": {
+      "type": "integer",
+      "default": 1024,
+      "label": "Width",
+      "min": 512,
+      "max": 2048,
+      "step": 64,
+      "group": "advanced"
+    },
+    "height": {
+      "type": "integer",
+      "default": 1024,
+      "label": "Height",
+      "min": 512,
+      "max": 2048,
+      "step": 64,
+      "group": "advanced"
+    },
+    "steps": {
+      "type": "integer",
+      "default": 30,
+      "label": "Steps",
+      "min": 10,
+      "max": 100,
+      "step": 5,
+      "group": "advanced"
+    },
+    "cfg_scale": {
+      "type": "number",
+      "default": 7.0,
+      "label": "CFG Scale",
+      "min": 1.0,
+      "max": 20.0,
+      "step": 0.5,
+      "group": "advanced"
+    },
+    "seed": {
+      "type": "integer",
+      "default": -1,
+      "label": "Seed",
+      "description": "-1 for random",
+      "group": "advanced"
+    },
+    "enable_freeu": {
+      "type": "boolean",
+      "default": true,
+      "label": "Enable FreeU",
+      "description": "Quality enhancement at no extra cost",
+      "group": "advanced"
+    }
+  },
+
+  "pipeline": [
+    {
+      "id": "load_model",
+      "type": "load_model",
+      "config": {
+        "model_type": "sdxl",
+        "dtype": "float16"
+      },
+      "outputs": ["pipe"]
+    },
+    {
+      "id": "build_prompt",
+      "type": "encode_prompt",
+      "config": {
+        "template": "{framing} portrait of a {age_range} {ethnicity} {subject_gender}, {expression} expression, {lighting} lighting, {background} background, {prompt}, professional photography, 8k uhd, high detail, sharp focus"
+      },
+      "inputs": {
+        "base_prompt": "prompt",
+        "subject_gender": "subject_gender",
+        "age_range": "age_range",
+        "ethnicity": "ethnicity",
+        "lighting": "lighting",
+        "background": "background",
+        "framing": "framing",
+        "expression": "expression"
+      },
+      "outputs": ["prompt_embeds"]
+    },
+    {
+      "id": "generate",
+      "type": "generate",
+      "config": {
+        "scheduler": "DPM++ 2M Karras"
+      },
+      "inputs": {
+        "prompt_embeds": "build_prompt.prompt_embeds",
+        "negative_prompt": "negative_prompt",
+        "width": "width",
+        "height": "height",
+        "steps": "steps",
+        "cfg_scale": "cfg_scale",
+        "seed": "seed"
+      },
+      "outputs": ["latents"]
+    },
+    {
+      "id": "decode",
+      "type": "decode",
+      "inputs": {
+        "latents": "generate.latents"
+      },
+      "outputs": ["image"]
+    },
+    {
+      "id": "save",
+      "type": "save",
+      "inputs": {
+        "image": "decode.image"
+      }
+    }
+  ],
+
+  "presets": {
+    "linkedin_headshot": {
+      "framing": "headshot",
+      "lighting": "soft studio",
+      "background": "blurred",
+      "expression": "confident",
+      "width": 1024,
+      "height": 1024
+    },
+    "fashion_editorial": {
+      "framing": "half body",
+      "lighting": "dramatic",
+      "background": "studio backdrop",
+      "expression": "serious",
+      "width": 832,
+      "height": 1216
+    },
+    "natural_outdoor": {
+      "framing": "shoulders up",
+      "lighting": "golden hour",
+      "background": "nature",
+      "expression": "smile",
+      "width": 1024,
+      "height": 1024
+    }
+  },
+
+  "app_adaptations": {
+    "vscode": {
+      "generate_standalone": true,
+      "show_code_preview": true
+    },
+    "davinci": {
+      "timeline_integration": false,
+      "batch_frames": false
+    },
+    "gimp": {
+      "brush_mode": false,
+      "layer_output": true,
+      "selection_as_mask": false
+    }
+  },
+
+  "examples": [
+    {
+      "name": "Professional Headshot",
+      "preview": "examples/headshot.png",
+      "parameters": {
+        "subject_gender": "woman",
+        "age_range": "young adult",
+        "lighting": "soft studio",
+        "expression": "confident"
+      }
+    }
+  ],
+
+  "source": {
+    "type": "original",
+    "url": null,
+    "workflow_json": null
+  }
+}

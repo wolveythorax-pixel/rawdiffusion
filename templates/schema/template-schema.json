@@ -1,0 +1,255 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RawDiffusion Template Schema",
+  "description": "Extensible template format for cross-application ML image/video generation",
+  "type": "object",
+  "required": ["id", "name", "version", "pipeline", "parameters"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique template identifier (slug format)",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable template name"
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the template"
+    },
+    "description": {
+      "type": "string",
+      "description": "What this template does and when to use it"
+    },
+    "author": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string",
+      "default": "MIT"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Searchable tags: style, use-case, model-type"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": ["beginner", "intermediate", "advanced"],
+      "description": "Complexity level for user filtering"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "txt2img",
+        "img2img",
+        "inpaint",
+        "outpaint",
+        "upscale",
+        "controlnet",
+        "style-transfer",
+        "character",
+        "animation",
+        "video",
+        "batch",
+        "composite"
+      ]
+    },
+
+    "requirements": {
+      "type": "object",
+      "description": "What's needed to run this template",
+      "properties": {
+        "base_model": {
+          "type": "object",
+          "properties": {
+            "architecture": {
+              "type": "string",
+              "enum": ["sd15", "sdxl", "sd3", "flux", "cascade"]
+            },
+            "recommended": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Recommended model names/IDs"
+            },
+            "vram_minimum_gb": {"type": "number"}
+          }
+        },
+        "loras": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {"type": "string"},
+              "url": {"type": "string"},
+              "required": {"type": "boolean"},
+              "default_weight": {"type": "number"}
+            }
+          }
+        },
+        "controlnets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["canny", "depth", "openpose", "lineart", "softedge", "scribble", "tile", "ip-adapter"]
+              },
+              "model": {"type": "string"},
+              "required": {"type": "boolean"}
+            }
+          }
+        },
+        "extensions": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Required extensions: animatediff, ipadapter, etc."
+        }
+      }
+    },
+
+    "parameters": {
+      "type": "object",
+      "description": "User-configurable parameters",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["type", "default"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["string", "number", "integer", "boolean", "image", "video", "select", "color"]
+          },
+          "default": {},
+          "label": {"type": "string"},
+          "description": {"type": "string"},
+          "min": {"type": "number"},
+          "max": {"type": "number"},
+          "step": {"type": "number"},
+          "options": {
+            "type": "array",
+            "description": "For select type"
+          },
+          "group": {
+            "type": "string",
+            "description": "UI grouping: basic, advanced, style, controlnet"
+          },
+          "visible_if": {
+            "type": "object",
+            "description": "Conditional visibility based on other params"
+          }
+        }
+      }
+    },
+
+    "pipeline": {
+      "type": "array",
+      "description": "Ordered list of pipeline steps",
+      "items": {
+        "type": "object",
+        "required": ["id", "type"],
+        "properties": {
+          "id": {"type": "string"},
+          "type": {
+            "type": "string",
+            "enum": [
+              "load_model",
+              "load_lora",
+              "load_controlnet",
+              "load_ipadapter",
+              "encode_prompt",
+              "preprocess",
+              "generate",
+              "decode",
+              "upscale",
+              "postprocess",
+              "animate",
+              "composite",
+              "save"
+            ]
+          },
+          "config": {
+            "type": "object",
+            "description": "Step-specific configuration"
+          },
+          "inputs": {
+            "type": "object",
+            "description": "Map param names or previous step outputs"
+          },
+          "outputs": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "optional": {"type": "boolean"},
+          "skip_if": {
+            "type": "object",
+            "description": "Condition to skip this step"
+          }
+        }
+      }
+    },
+
+    "presets": {
+      "type": "object",
+      "description": "Named parameter presets for quick selection",
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+
+    "app_adaptations": {
+      "type": "object",
+      "description": "App-specific overrides and features",
+      "properties": {
+        "vscode": {
+          "type": "object",
+          "properties": {
+            "generate_standalone": {"type": "boolean"},
+            "show_code_preview": {"type": "boolean"}
+          }
+        },
+        "davinci": {
+          "type": "object",
+          "properties": {
+            "timeline_integration": {"type": "boolean"},
+            "batch_frames": {"type": "boolean"},
+            "in_point_param": {"type": "string"},
+            "out_point_param": {"type": "string"}
+          }
+        },
+        "gimp": {
+          "type": "object",
+          "properties": {
+            "brush_mode": {"type": "boolean"},
+            "layer_output": {"type": "boolean"},
+            "selection_as_mask": {"type": "boolean"}
+          }
+        }
+      }
+    },
+
+    "examples": {
+      "type": "array",
+      "description": "Example outputs with their parameters",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "preview": {"type": "string"},
+          "parameters": {"type": "object"}
+        }
+      }
+    },
+
+    "source": {
+      "type": "object",
+      "description": "Original source if converted from ComfyUI/etc",
+      "properties": {
+        "type": {"type": "string", "enum": ["comfyui", "a1111", "original"]},
+        "url": {"type": "string"},
+        "workflow_json": {"type": "string"}
+      }
+    }
+  }
+}

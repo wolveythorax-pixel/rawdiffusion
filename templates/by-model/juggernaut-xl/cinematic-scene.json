@@ -1,0 +1,158 @@
+{
+  "id": "juggernaut-cinematic-scene",
+  "name": "Cinematic Scene Generator",
+  "version": "1.0.0",
+  "description": "Film-quality cinematic scenes with dramatic lighting and composition. Perfect for concept art, storyboards, and establishing shots.",
+  "author": "RawDiffusion",
+  "license": "MIT",
+  "tags": ["cinematic", "film", "movie", "scene", "landscape", "dramatic", "sdxl"],
+  "difficulty": "beginner",
+  "category": "txt2img",
+
+  "requirements": {
+    "base_model": {
+      "architecture": "sdxl",
+      "recommended": ["juggernautXL_v9.safetensors", "realvisxl_v5.safetensors"],
+      "vram_minimum_gb": 8
+    }
+  },
+
+  "parameters": {
+    "prompt": {
+      "type": "string",
+      "default": "a vast desert landscape at sunset",
+      "label": "Scene Description",
+      "group": "basic"
+    },
+    "negative_prompt": {
+      "type": "string",
+      "default": "blurry, low quality, oversaturated, cartoon, anime, text, watermark, signature",
+      "label": "Negative Prompt",
+      "group": "basic"
+    },
+    "genre": {
+      "type": "select",
+      "default": "sci-fi",
+      "label": "Genre/Style",
+      "options": ["sci-fi", "fantasy", "noir", "western", "horror", "action", "drama", "documentary"],
+      "group": "style"
+    },
+    "time_of_day": {
+      "type": "select",
+      "default": "golden hour",
+      "label": "Time of Day",
+      "options": ["dawn", "morning", "midday", "afternoon", "golden hour", "dusk", "night", "blue hour"],
+      "group": "style"
+    },
+    "weather": {
+      "type": "select",
+      "default": "clear",
+      "label": "Weather",
+      "options": ["clear", "cloudy", "overcast", "rainy", "stormy", "foggy", "snowy", "dusty"],
+      "group": "style"
+    },
+    "camera_angle": {
+      "type": "select",
+      "default": "wide shot",
+      "label": "Camera Angle",
+      "options": ["extreme wide", "wide shot", "medium shot", "low angle", "high angle", "dutch angle", "aerial", "ground level"],
+      "group": "style"
+    },
+    "lens": {
+      "type": "select",
+      "default": "35mm",
+      "label": "Lens Style",
+      "options": ["14mm ultra wide", "24mm wide", "35mm", "50mm", "85mm portrait", "135mm telephoto", "anamorphic"],
+      "group": "advanced"
+    },
+    "aspect_ratio": {
+      "type": "select",
+      "default": "21:9 cinematic",
+      "label": "Aspect Ratio",
+      "options": ["16:9 widescreen", "21:9 cinematic", "2.39:1 anamorphic", "4:3 classic", "1:1 square"],
+      "group": "basic"
+    },
+    "color_grade": {
+      "type": "select",
+      "default": "cinematic teal orange",
+      "label": "Color Grade",
+      "options": ["natural", "cinematic teal orange", "desaturated", "warm vintage", "cool blue", "high contrast", "muted pastel"],
+      "group": "style"
+    },
+    "steps": {
+      "type": "integer",
+      "default": 35,
+      "min": 15,
+      "max": 100,
+      "group": "advanced"
+    },
+    "cfg_scale": {
+      "type": "number",
+      "default": 7.5,
+      "min": 1,
+      "max": 20,
+      "group": "advanced"
+    },
+    "seed": {
+      "type": "integer",
+      "default": -1,
+      "group": "advanced"
+    }
+  },
+
+  "pipeline": [
+    {
+      "id": "load_model",
+      "type": "load_model",
+      "config": {"model_type": "sdxl"}
+    },
+    {
+      "id": "build_prompt",
+      "type": "encode_prompt",
+      "config": {
+        "template": "{prompt}, {genre} film still, {camera_angle}, {lens} lens, {time_of_day}, {weather} weather, {color_grade} color grading, cinematic lighting, film grain, volumetric lighting, ray tracing, 8k uhd, masterpiece"
+      }
+    },
+    {
+      "id": "generate",
+      "type": "generate",
+      "config": {"scheduler": "DPM++ 2M Karras"}
+    },
+    {"id": "decode", "type": "decode"},
+    {"id": "save", "type": "save"}
+  ],
+
+  "presets": {
+    "blade_runner": {
+      "genre": "sci-fi",
+      "time_of_day": "night",
+      "weather": "rainy",
+      "color_grade": "cinematic teal orange",
+      "camera_angle": "low angle"
+    },
+    "mad_max": {
+      "genre": "action",
+      "time_of_day": "golden hour",
+      "weather": "dusty",
+      "color_grade": "warm vintage",
+      "camera_angle": "wide shot"
+    },
+    "lord_of_the_rings": {
+      "genre": "fantasy",
+      "time_of_day": "morning",
+      "weather": "foggy",
+      "color_grade": "natural",
+      "camera_angle": "extreme wide"
+    }
+  },
+
+  "app_adaptations": {
+    "vscode": {"generate_standalone": true},
+    "davinci": {
+      "timeline_integration": true,
+      "batch_frames": true,
+      "notes": "Great for establishing shots and b-roll generation"
+    },
+    "gimp": {"layer_output": true}
+  }
+}
