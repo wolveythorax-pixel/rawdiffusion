@@ -169,20 +169,7 @@
           "description": "Replicate API key (for cloud generation)"
         }
       }
-    },
-    "keybindings": [
-      {
-        "command": "rawdiffusion.openGallery",
-        "key": "ctrl+shift+g",
-        "mac": "cmd+shift+g"
-      },
-      {
-        "command": "rawdiffusion.runWorkflow",
-        "key": "ctrl+shift+r",
-        "mac": "cmd+shift+r",
-        "when": "editorTextFocus && resourceFilename =~ /.*\\.py$/"
-      }
-    ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
