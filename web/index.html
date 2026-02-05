@@ -225,6 +225,54 @@
             border-radius: 8px;
         }
 
+        .preview-requirements {
+            padding: 1rem;
+            border-top: 1px solid #262626;
+            background: #171717;
+        }
+
+        .preview-requirements h4 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #737373;
+            margin-bottom: 0.5rem;
+        }
+
+        .model-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: #262626;
+            border-radius: 6px;
+            color: #e5e5e5;
+            text-decoration: none;
+            font-size: 0.875rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .model-link:hover {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        .model-size {
+            font-size: 0.75rem;
+            color: #737373;
+        }
+
+        .vram-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: #1e3a5f;
+            color: #60a5fa;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
         .preview-code {
             height: 40%;
             border-top: 1px solid #262626;
@@ -355,6 +403,9 @@
         <div class="preview-image">
             <img id="preview-image" src="" alt="Preview">
         </div>
+        <div class="preview-requirements" id="preview-requirements">
+            <!-- Model download links populated by JS -->
+        </div>
         <div class="preview-code">
             <pre><code id="preview-code"></code></pre>
         </div>
@@ -455,6 +506,33 @@
             } else {
                 previewImg.style.display = 'none';
             }
+
+            // Show model requirements
+            const reqContainer = document.getElementById('preview-requirements');
+            let reqHtml = '<h4>Required Model</h4>';
+
+            if (template.vram_gb) {
+                reqHtml += `<span class="vram-badge">${template.vram_gb}GB VRAM</span>`;
+            }
+
+            reqHtml += '<div style="margin-top: 0.5rem;">';
+            if (template.model_downloads && template.model_downloads.length > 0) {
+                template.model_downloads.forEach(m => {
+                    if (m.url) {
+                        reqHtml += `<a href="${m.url}" target="_blank" class="model-link">
+                            ${m.name}
+                            ${m.size_gb ? `<span class="model-size">${m.size_gb}GB</span>` : ''}
+                        </a>`;
+                    } else {
+                        reqHtml += `<span class="model-link">${m.name}</span>`;
+                    }
+                });
+            } else {
+                reqHtml += `<span class="model-link">${template.model}</span>`;
+            }
+            reqHtml += '</div>';
+
+            reqContainer.innerHTML = reqHtml;
         }
 
         function closePreview() {

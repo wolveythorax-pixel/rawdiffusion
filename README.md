@@ -116,21 +116,36 @@ Every template shows the output AND the code. No secrets.
 
 ## Quick Start
 
-```bash
-# Install the VS Code extension
-code --install-extension rawdiffusion.rawdiffusion
+See the full **[Getting Started Guide](docs/GETTING_STARTED.md)** for detailed setup instructions.
 
-# Clone for local development
+```bash
+# 1. Install dependencies
+pip install torch diffusers transformers accelerate
+
+# 2. Download a model from CivitAI
+# https://civitai.com/models/133005/juggernaut-xl (SDXL)
+# https://civitai.com/models/4384/dreamshaper (SD 1.5)
+
+# 3. Clone RawDiffusion
 git clone https://github.com/yourusername/rawdiffusion
 cd rawdiffusion
 
-# Start the server
+# 4. Start the server
 cd server
 pip install -r requirements.txt
 python main.py
 
-# Open VS Code and start creating
+# 5. Open web/index.html and start browsing templates!
 ```
+
+### Model Downloads
+
+| Model | Type | VRAM | Link |
+|-------|------|------|------|
+| JuggernautXL v9 | SDXL | 8GB | [CivitAI](https://civitai.com/models/133005/juggernaut-xl) |
+| DreamShaper 8 | SD 1.5 | 4GB | [CivitAI](https://civitai.com/models/4384/dreamshaper) |
+| AnythingV5 | SD 1.5 | 4GB | [CivitAI](https://civitai.com/models/9409/anything-v5) |
+| RealVisXL v5 | SDXL | 8GB | [CivitAI](https://civitai.com/models/139562/realvisxl-v50) |
 
 ## Philosophy
 

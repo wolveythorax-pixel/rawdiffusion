@@ -13,7 +13,18 @@
   "requirements": {
     "base_model": {
       "architecture": "sd15",
-      "recommended": ["anythingV5_v5.safetensors", "darkSushiMix_225D.safetensors"],
+      "recommended": [
+        {
+          "name": "anythingV5_v5.safetensors",
+          "url": "https://civitai.com/models/9409/anything-v5",
+          "size_gb": 2.0
+        },
+        {
+          "name": "darkSushiMix_225D.safetensors",
+          "url": "https://civitai.com/models/24779/dark-sushi-mix",
+          "size_gb": 2.0
+        }
+      ],
       "vram_minimum_gb": 4
     }
   },

@@ -13,7 +13,13 @@
   "requirements": {
     "base_model": {
       "architecture": "sd15",
-      "recommended": ["dreamshaper_8.safetensors", "dreamshaper_7.safetensors"],
+      "recommended": [
+        {
+          "name": "dreamshaper_8.safetensors",
+          "url": "https://civitai.com/models/4384/dreamshaper",
+          "size_gb": 2.0
+        }
+      ],
       "vram_minimum_gb": 4
     }
   },

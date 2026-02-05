@@ -119,6 +119,19 @@ async def list_templates():
 # Open in VS Code for full code generation
 '''
 
+                # Extract model download info
+                requirements = meta.get("requirements", {})
+                base_model = requirements.get("base_model", {})
+                recommended = base_model.get("recommended", [])
+
+                # Handle both old (string array) and new (object array) formats
+                model_downloads = []
+                for rec in recommended:
+                    if isinstance(rec, dict):
+                        model_downloads.append(rec)
+                    elif isinstance(rec, str):
+                        model_downloads.append({"name": rec, "url": None})
+
                 templates.append({
                     "id": meta.get("id"),
                     "name": meta.get("name"),
@@ -128,7 +141,9 @@ async def list_templates():
                     "thumbnail": thumbnail,
                     "code": code,
                     "difficulty": meta.get("difficulty", "beginner"),
-                    "tags": meta.get("tags", [])
+                    "tags": meta.get("tags", []),
+                    "vram_gb": base_model.get("vram_minimum_gb"),
+                    "model_downloads": model_downloads
                 })
             except Exception as e:
                 print(f"Error loading template {template_file}: {e}")

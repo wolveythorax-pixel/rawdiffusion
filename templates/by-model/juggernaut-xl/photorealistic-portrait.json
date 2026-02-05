@@ -14,9 +14,16 @@
     "base_model": {
       "architecture": "sdxl",
       "recommended": [
-        "juggernautXL_v9.safetensors",
-        "juggernautXL_v8.safetensors",
-        "realvisxl_v5.safetensors"
+        {
+          "name": "juggernautXL_v9.safetensors",
+          "url": "https://civitai.com/models/133005/juggernaut-xl",
+          "size_gb": 6.5
+        },
+        {
+          "name": "realvisxl_v5.safetensors",
+          "url": "https://civitai.com/models/139562/realvisxl-v50",
+          "size_gb": 6.5
+        }
       ],
       "vram_minimum_gb": 8
     },
