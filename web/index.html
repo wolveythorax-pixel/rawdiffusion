@@ -422,7 +422,7 @@
                 <div class="card" onclick="openPreview('${t.id}', ${JSON.stringify(t).replace(/"/g, '&quot;')})">
                     <div class="card-image">
                         ${t.thumbnail
-                            ? `<img src="${t.thumbnail}" alt="${t.name}">`
+                            ? `<img src="${SERVER_URL}${t.thumbnail}" alt="${t.name}">`
                             : '🎨'}
                     </div>
                     <div class="card-content">
@@ -446,6 +446,15 @@
             document.getElementById('preview').classList.add('open');
             document.getElementById('preview-title').textContent = template.name;
             document.getElementById('preview-code').textContent = template.code || '# Loading...';
+
+            // Set preview image
+            const previewImg = document.getElementById('preview-image');
+            if (template.thumbnail) {
+                previewImg.src = SERVER_URL + template.thumbnail;
+                previewImg.style.display = 'block';
+            } else {
+                previewImg.style.display = 'none';
+            }
         }
 
         function closePreview() {
